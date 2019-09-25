@@ -1,0 +1,48 @@
+body {
+    background:linear-gradient(0deg,rgba(0, 0, 0, 0.5),rgba(0, 0, 0, 0.5)),url("/image/bgcream.jpg");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+#card {
+    border-radius:5px;
+    background-color: white;
+    padding-top:30px;
+    padding-bottom:0px;
+    padding-right: 0px;
+    padding-left: 0px;
+    margin-bottom: 10px;
+}
+
+.card-input {
+    padding-top:15px;
+    padding-bottom:5px;
+    padding-right: 30px;
+    padding-left: 30px;
+}
+
+.card-title{
+    padding-right: 30px;
+    padding-left: 30px;
+}
+
+.card-input-shadow{
+    box-shadow: 0 0 5px #333;
+}
+
+.btn-circle {
+    margin-top: 4px;
+    position: sticky;
+    width: 50px;
+    height: 50px;
+    padding: 6px 0px;
+    border-radius: 100%;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.42857;
+}
+
+.check{
+    border:1px solid rgb(206, 212, 218);
+    padding:10px 0px;
+}
