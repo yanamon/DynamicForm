@@ -21,8 +21,7 @@
                     {{ session()->get('message') }}
                 </div>
                 @endif
-                <form action="/store-user-form" method="POST" id="dynamic-form" class="dynamic-form">
-                    {{ csrf_field() }}
+                <div>
                     <input type="hidden" name="id_user" value="{{$form->id_user}}">
                     <input type="hidden" name="form_id" value="{{$form->id}}">
                     <div class="form-group card-title">
@@ -33,9 +32,9 @@
                         {!!$input->html!!}
                     @endforeach
                     <div class="form-group card-title" style="margin-bottom:30px;">
-                        <button type="submit" class="col-md-12 btn btn-success btn-block">Submit</button>
+                        <button type="button" class="col-md-12 btn btn-success btn-block">Submit</button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

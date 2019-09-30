@@ -13,7 +13,6 @@
                         <th>No</th>
                         <th>Form Title</th>
                         <th>Form Description</th>
-                        <th>Data</th>
                         <th>Action</th>
                     </thead>
                     <tbody>
@@ -22,7 +21,6 @@
                             <td>{{$i+1}}</td>
                             <td>{{$form->title}}</td>
                             <td>@if($form->description!=null){{$form->description}}@else No Description @endif</td>
-                            <td><a href="#" data-toggle="modal" data-target="" style="color:#4285f4;">Show Data</a></td>
                             <td>
                                 <center>	
                                     <a href="show-form/{{$form->id}}">

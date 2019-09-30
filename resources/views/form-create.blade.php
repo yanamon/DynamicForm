@@ -18,10 +18,10 @@
                     </div>
                 </div>
                 @endif
-                <form action="/store-form" method="POST" id="dynamic-form" class="dynamic-form">
+                <form action="/store-form" method="POST" id="dynamic-form" class="dynamic-form" onsubmit="return validate(this)">
                     {{ csrf_field() }}
                     <div class="form-group card-title">
-                        <input class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
+                        <input id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
                         <input class="form-control form-control-sm" type="text" name="description" placeholder="Description (Optional)">
                     </div>  
                 </form>
@@ -114,3 +114,15 @@
 </div>   
 
 @endsection
+
+<script>
+    function validate(form) {
+        var formTitle = form.formTitle.value;
+        if (!formTitle) {
+            form.formTitle.focus();
+            alert("Form title is required");
+            return false;
+        }
+        else return true;
+    }
+</script>

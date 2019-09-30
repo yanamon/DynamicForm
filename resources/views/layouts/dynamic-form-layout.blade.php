@@ -10,7 +10,7 @@
         <!-- Meta -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Dynamic Form</title>
+        <title>Form Builder</title>
         
         <!-- Resource -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -36,7 +36,7 @@
             <!-- Sidebar  -->
             <nav id="sidebar">
                 <div class="sidebar-header">
-                    <h3>Dynamic Form</h3>
+                    <h3>Form Builder</h3>
                 </div>
                 <ul class="list-unstyled components">
                     <p>Create your own form!</p>
