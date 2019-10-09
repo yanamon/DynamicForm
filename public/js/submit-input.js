@@ -53,7 +53,7 @@ $(document).ready(function() {
             else {alert("input type underconstruction");return;}
         }
         else{ input_html = input_html +
-            '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+'>';
+            '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';
         }
         var keys_length = keys.length; 
         for(a=0; a<=keys_length; a++){

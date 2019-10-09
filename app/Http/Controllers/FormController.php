@@ -26,7 +26,11 @@ class FormController extends Controller
     {
         $request->validate([
             'title' => 'required',
-            'html' => 'required'
+            'html' => 'required',
+            'app_key' => 'required',
+            'app_secret' => 'required',
+            'access_token' => 'required',
+            'folder_name' => 'required'
         ]);
         $form = new Form();
         $form->title = $request->title;
@@ -41,15 +45,17 @@ class FormController extends Controller
             $form_input->save();
         }
 
-        $htmls = $this->createHtml($request->html, $request->title, $request->description);
+        $htmls = $this->createHtml($request);
 
         $filename = $request->title.".php";
         Storage::put($filename, $htmls);
         return redirect('show-form/'.$last_form_id);
     }
 
-    public function createHtml($requestHtmls, $title, $description){
-        $htmls = "<html>";
+    public function createHtml($request){
+        $htmls = "";
+        $htmls = $htmls.$this->createPhpSubmit($request);
+        $htmls = $htmls."<html>";
         $htmls = $htmls.$this->createHeader();
         $htmls = $htmls.'<body>';
         $htmls = $htmls.'<div class="container">';
@@ -58,11 +64,11 @@ class FormController extends Controller
         $htmls = $htmls.'<div id="card" class="col-md-8 shadow-sm" style="margin-top:25px">';
         $htmls = $htmls.'<div>';
         $htmls = $htmls.'<div class="form-group card-title">';
-        $htmls = $htmls.'<h3>'.$title.'</h3>';
-        if($description!=null) $htmls = $htmls.'<label>'.$description.'</label>';
+        $htmls = $htmls.'<h3>'.$request->title.'</h3>';
+        if($request->description!=null) $htmls = $htmls.'<label>'.$request->description.'</label>';
         $htmls = $htmls.'</div>';
         $htmls = $htmls.'<form action="#" method="POST">';
-        foreach($requestHtmls as $html){
+        foreach($request->html as $html){
             $htmls = $htmls.$html;
         }
         $htmls= $htmls.'<button type="submit" class="btn btn-success">Submit</button>';
@@ -70,6 +76,7 @@ class FormController extends Controller
         $htmls = $htmls.'</div></div></div></div>';
         $htmls = $htmls.'</body>';
         $htmls = $htmls.'</html>';
+        $htmls = $htmls.$this->createPhpSuccess();
         return $htmls;
     }
 
@@ -81,6 +88,76 @@ class FormController extends Controller
         $head = $head.'<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>';
         $head = $head."</head>";
         return $head;
+    }
+
+    public function createPhpSubmit($request){
+        $php = '';
+        $php = $php.'<?php ';
+        $php = $php.    'require_once "vendor/autoload.php"; ';
+        $php = $php.    'use Kunnu\Dropbox\DropboxFile; ';
+        $php = $php.    'use Kunnu\Dropbox\DropboxApp; ';
+        $php = $php.    'use Kunnu\Dropbox\Dropbox; ';
+            
+        $php = $php.    'if(isset($_POST["input_value"])){ ';
+        $php = $php.        '$app_key = "'.$request->app_key.'"; ';
+        $php = $php.        '$app_secret = "'.$request->app_secret.'"; ';
+        $php = $php.        '$access_token = "'.$request->access_token.'"; ';
+        $php = $php.        '$folder_name = "'.$request->folder_name.'"; ';
+        $php = $php.        '$file_name = "data".".json"; ';
+        
+        $php = $php.        '$values = $_POST["input_value"]; ';
+        $php = $php.        '$labels = $_POST["input_label"]; ';
+        $php = $php.        '$keys = array_keys($values); ';
+        $php = $php.        '$i = 0; ';
+        $php = $php.        '$row = array(); ';
+        $php = $php.        'foreach($values as $value){ ';      
+        $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => array_values($value)); ';
+        $php = $php.            'else $attr = array($labels[$keys[$i]] => $value); ';
+        $php = $php.            '$row = $row + $attr; ';
+        $php = $php.            '$i++; ';
+        $php = $php.        '} ';
+        
+        $php = $php.        '$myJSON = json_encode($row); ';
+        $php = $php.        '$fp = fopen($file_name, "w"); ';
+        $php = $php.        'fwrite($fp, $myJSON); ';
+        $php = $php.        'fclose($fp); ';
+        $php = $php.        '$app = new DropboxApp($app_key, $app_secret, $access_token); ';
+        $php = $php.        '$dropbox = new Dropbox($app); ';
+
+        $php = $php.        'try{';
+        $php = $php.        '    $folder = $dropbox->getMetadata("/".$folder_name);';
+        $php = $php.        '}catch(Exception $e){';
+        $php = $php.        '    $folder = $dropbox->createFolder("/".$folder_name);';
+        $php = $php.        '}';
+
+        $php = $php.        '$path = "/".$folder_name."/".$file_name;';
+        $php = $php.        '$dropboxFile = new DropboxFile($file_name); ';
+        $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]);';
+        $php = $php.        '$file->getName(); ';
+        $php = $php.        'unlink($path); ';
+        $php = $php.        'session_start(); ';
+        $php = $php.        '$_SESSION["success"] = 1; ';
+        $php = $php.        'header("Location: ".$_SERVER["PHP_SELF"]); ';
+        $php = $php.        'exit; ';
+        $php = $php.    '} ';
+        $php = $php.    'else{ ';
+        $php = $php.'?> ';
+        return $php;
+    }
+
+    public function createPhpSuccess(){
+        $php = '';
+        $php = $php.' <?php ';
+        $php = $php.    'session_start(); ';
+        $php = $php.    'if (isset($_SESSION["success"])) { ';
+        $php = $php.        'unset($_SESSION["success"]); ';
+        $php = $php.'?> ' ;
+        $php = $php.        '<script> alert("Input Data Sukses"); </script> ';
+        $php = $php.'<?php ';
+        $php = $php.        '} ';
+        $php = $php.    '} ';
+        $php = $php.'?> ';
+        return $php;
     }
 
     public function showAll(){

@@ -24,6 +24,38 @@
                         <input id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
                         <input class="form-control form-control-sm" type="text" name="description" placeholder="Description (Optional)">
                     </div>  
+                    <!-- Export Modal -->
+                    <div class="modal" id="export-modal">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Export Form</h4>
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                </div>    
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="usr">Dropbox App Key:</label>
+                                        <input id="appKey" class="form-control" type="text" name="app_key" placeholder="pguozkqfb6vn8w9" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="usr">Dropbox App Secret:</label>
+                                        <input id="appSecret" class="form-control" type="text" name="app_secret" placeholder="dw5h7xegfdm356a" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="usr">Dropbox Access token:</label>
+                                        <input id="accessToken" class="form-control" type="text" name="access_token" placeholder="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="usr">Dropbox Folder Name:</label>
+                                        <input id="folderName" class="form-control" type="text" name="folder_name" placeholder="tb_barang" required> 
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button id="btn-export" type="button" class="btn btn-danger">Export</button>
+                                </div>     
+                            </div>
+                        </div>
+                    </div> 
                 </form>
             </div>
         </div>
@@ -71,23 +103,7 @@
     </div>
 </div>   
 
-<!-- Export Modal -->
-<div class="modal" id="export-modal">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Export Form</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>    
-            <div class="modal-body">
-                Export This Form?
-            </div>
-            <div class="modal-footer">
-                <button id="btn-export" type="button" class="btn btn-danger">Export</button>
-            </div>     
-        </div>
-    </div>
-</div> 
+
 
 <!-- Action Modal -->
 <div class="modal" id="action-modal">
@@ -118,9 +134,33 @@
 <script>
     function validate(form) {
         var formTitle = form.formTitle.value;
+        var appKey = form.appKey.value;
+        var appSecret = form.appSecret.value;
+        var accessToken = form.accessToken.value;
+        var folderName = form.folderName.value;
         if (!formTitle) {
             form.formTitle.focus();
             alert("Form title is required");
+            return false;
+        }
+        else if(!appKey) {
+            form.appKey.focus();
+            alert("Dropbox App Key is required");
+            return false;
+        }
+        else if(!appSecret) {
+            form.appSecret.focus();
+            alert("Dropbox App Secret is required");
+            return false;
+        }
+        else if(!accessToken) {
+            form.accessToken.focus();
+            alert("Dropbox Access Token is required");
+            return false;
+        }
+        else if(!folderName) {
+            form.folderName.focus();
+            alert("Dropbox Folder Name is required");
             return false;
         }
         else return true;
