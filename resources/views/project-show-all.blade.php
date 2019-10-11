@@ -11,27 +11,31 @@
                 <table id="example" class="table table-bordered">
                     <thead class="thead-dark">
                         <th>No</th>
-                        <th>Form Title</th>
-                        <th>Form Description</th>
+                        <th>Project Name</th>
+                        <th>Dropbox App Key</th>
+                        <th>Dropbox App Secret</th>
+                        <th>Dropbox Access Token</th>
                         <th>Action</th>
                     </thead>
                     <tbody>
-                    @foreach($forms as $i => $form)
+                    @foreach($projects as $i => $project)
                         <tr>
                             <td>{{$i+1}}</td>
-                            <td>{{$form->title}}</td>
-                            <td>@if($form->description!=null){{$form->description}}@else No Description @endif</td>
+                            <td>{{$project->project_name}}</td>
+                            <td>{{$project->dropbox_app_key}}</td>
+                            <td>{{$project->dropbox_app_secret}}</td>
+                            <td>{{$project->dropbox_access_token}}</td>
                             <td>
                                 <center>	
-                                    <a href="show-form/{{$form->id}}">
+                                    <a href="/project/{{$project->id}}">
                                         <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
-                                    </a>     
+                                    </a> 
                                     <a href="#">
                                         <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
                                     </a> 
                                     <a href="#">
                                         <i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i>
-                                    </a>                               
+                                    </a>                            
                                 </center>												
                             </td>
                         </tr>
@@ -42,6 +46,9 @@
         </div>
     </div>
 </div>
+<a href="create-project">
+    <button style="position:fixed; right:3%; bottom:6%;" class="btn btn-success btn-circle" type="button"><i class="fa fa-plus fa-lg"></i></button>
+</a>
 
 <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script> 
@@ -50,4 +57,5 @@ $(document).ready(function() {
     $('#example').DataTable();
 } );       
 </script>
+
 @endsection

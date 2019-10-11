@@ -10,7 +10,8 @@
         <!-- Meta -->
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Form Builder</title>
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <title>Dropbox Data Access</title>
         
         <!-- Resource -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
@@ -20,11 +21,24 @@
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script>
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+            });
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
         <script src="{{asset('/js/style.js')}}"></script>
+
+        
+        <script>var x = 1; var y = 0; var keys = [];</script>
         <script src="{{asset('/js/select-input.js')}}"></script>
         <script src="{{asset('/js/submit-input.js')}}"></script>
+        <script src="{{asset('/js/update-input.js')}}"></script>
 
         <link rel="stylesheet" href="{{asset('/css/style.css')}}">
         <style></style>
@@ -36,13 +50,13 @@
             <!-- Sidebar  -->
             <nav id="sidebar">
                 <div class="sidebar-header">
-                    <h3>Form Builder</h3>
+                    <h3>Dropbox Data Access</h3>
                 </div>
                 <ul class="list-unstyled components">
                     <p>Create your own form!</p>
                     {{-- <li class="active"><a href="/">Home</a></li> --}}
-                    <li><a href="/">Create Form</a></li>
-                    <li><a href="/show-all-form">Show All Form</a></li>
+                    <li><a href="/all-project">Your Project</a></li>
+                    <li><a href="/create-project">Create Project</a></li>
                 </ul>
                  <ul class="list-unstyled CTAs">
                     <li>

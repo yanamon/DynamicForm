@@ -16,26 +16,35 @@ class FormController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function show($id){
+        $form = Form::with('formInput')->find($id);
+        return view('form-show', compact('form'));
+    }
+
+    public function index($project_id){
+        $forms = Form::where('project_id', $project_id)->orderBy('id', 'DESC')->get();
+        return view('form-show-all', compact('forms','project_id'));
+    }
+
+    public function create($project_id)
     {
         $inputTypes = InputType::get();
-        return view('form-create', compact('inputTypes'));
+        return view('form-create', compact('inputTypes', 'project_id'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required',
+            'project_id' => 'required',
             'html' => 'required',
-            'app_key' => 'required',
-            'app_secret' => 'required',
-            'access_token' => 'required',
-            'folder_name' => 'required'
+            'form_name' => 'required'
         ]);
         $form = new Form();
         $form->title = $request->title;
         $form->description = $request->description;
-        $form->id_user = Auth::user()->id;
+        $form->project_id = $request->project_id;
+        $form->form_name = $request->form_name;
         $form->save();
         $last_form_id = Form::max('id');
         foreach($request->html as $html){
@@ -44,12 +53,58 @@ class FormController extends Controller
             $form_input->form_id = $last_form_id;
             $form_input->save();
         }
+        return redirect('project/'.$request->project_id);
 
-        $htmls = $this->createHtml($request);
+    }
 
-        $filename = $request->title.".php";
-        Storage::put($filename, $htmls);
-        return redirect('show-form/'.$last_form_id);
+    public function exportProject(Request $request)
+    {
+        // $request->validate([
+        //     'title' => 'required',
+        //     'html' => 'required',
+        //     'form_name' => 'required'
+        // ]);
+        // $form = new Form();
+        // $form->title = $request->title;
+        // $form->description = $request->description;
+        // $form->id_user = Auth::user()->id;
+        // $form->save();
+        // $last_form_id = Form::max('id');
+        // foreach($request->html as $html){
+        //     $form_input = new FormInput();
+        //     $form_input->html = $html;
+        //     $form_input->form_id = $last_form_id;
+        //     $form_input->save();
+        // }
+        // $htmls = $this->createHtml($request);
+        // $filename = $request->title.".php";
+        // Storage::put($filename, $htmls);
+        // return redirect('show-form/'.$last_form_id);
+    }
+
+    public function exportForm(Request $request)
+    {
+        // $request->validate([
+        //     'title' => 'required',
+        //     'html' => 'required',
+        //     'form_name' => 'required'
+        // ]);
+        // $form = new Form();
+        // $form->title = $request->title;
+        // $form->description = $request->description;
+        // $form->id_user = Auth::user()->id;
+        // $form->save();
+        // $last_form_id = Form::max('id');
+        // foreach($request->html as $html){
+        //     $form_input = new FormInput();
+        //     $form_input->html = $html;
+        //     $form_input->form_id = $last_form_id;
+        //     $form_input->save();
+        // }
+        // $htmls = $this->createHtml($request);
+        // $filename = $request->title.".php";
+        // Storage::put($filename, $htmls);
+        // return redirect('show-form/'.$last_form_id);
     }
 
     public function createHtml($request){
@@ -102,7 +157,7 @@ class FormController extends Controller
         $php = $php.        '$app_key = "'.$request->app_key.'"; ';
         $php = $php.        '$app_secret = "'.$request->app_secret.'"; ';
         $php = $php.        '$access_token = "'.$request->access_token.'"; ';
-        $php = $php.        '$folder_name = "'.$request->folder_name.'"; ';
+        $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
         $php = $php.        '$file_name = "data".".json"; ';
         
         $php = $php.        '$values = $_POST["input_value"]; ';
@@ -160,9 +215,9 @@ class FormController extends Controller
         return $php;
     }
 
-    public function showAll(){
-        $forms = Form::where('id_user', Auth::user()->id)->get();
-        return view('form-show-all2', compact('forms'));
+    public function ajaxCheckFormName(Request $request){
+        $row = Form::where('project_id', $request->projectId)->where('form_name', $request->formName)->get();
+        return response()->json($row);
     }
 
 }

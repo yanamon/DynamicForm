@@ -15,9 +15,8 @@ class Form extends Model
   public function formData(){
     return $this->hasMany('App\FormData', 'form_id');
   }
-  
-  public function users(){
-    return $this->belongsTo('App\Users', 'id_user');
+
+  public function project(){
+    return $this->belongsTo('App\Project', 'project_id');
   }
-  
 }

@@ -20,6 +20,12 @@ body {
     padding-right: 30px;
     padding-left: 30px;
 }
+.ui-state-hover {  
+    background:lightgray   
+}
+.ui-state-active {
+    background:lightyellow; 
+}
 
 .card-title{
     padding-right: 30px;
