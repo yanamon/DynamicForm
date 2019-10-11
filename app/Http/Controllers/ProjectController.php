@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Project;
 use App\Form;
+use App\FormInput;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -77,9 +78,10 @@ class ProjectController extends Controller
      * @param  \App\Project  $project
      * @return \Illuminate\Http\Response
      */
-    public function edit(Project $project)
+    public function edit($id)
     {
-        //
+        $project = Project::find($id);
+        return view('project-edit', compact('project'));
     }
 
     /**
@@ -89,9 +91,21 @@ class ProjectController extends Controller
      * @param  \App\Project  $project
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Project $project)
+    public function update(Request $request)
     {
-        //
+        $request->validate([
+            'project_name' => 'required',
+            'dropbox_app_key' => 'required',
+            'dropbox_app_secret' => 'required',
+            'dropbox_access_token' => 'required'
+        ]);
+        $project = Project::find($request->id);
+        $project->project_name = $request->project_name;
+        $project->dropbox_app_key = $request->dropbox_app_key;
+        $project->dropbox_app_secret = $request->dropbox_app_secret;
+        $project->dropbox_access_token = $request->dropbox_access_token;
+        $project->save();
+        return redirect('all-project');
     }
 
     /**
@@ -100,8 +114,14 @@ class ProjectController extends Controller
      * @param  \App\Project  $project
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Project $project)
+    public function destroy($id)
     {
-        //
+        $forms = Form::where('project_id', $id)->get();
+        foreach($forms as $form){
+            $inputs = FormInput::where('form_id', $form->id)->delete();
+        }
+        $forms = Form::where('project_id', $id)->delete();
+        $project = Project::findOrFail($id)->delete();
+        return redirect('/all-project');
     }
 }

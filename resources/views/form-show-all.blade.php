@@ -28,12 +28,12 @@
                                     <a href="/show-form/{{$form->id}}">
                                         <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
                                     </a>     
-                                    <a href="#">
+                                    <a href="/edit-form/{{$form->id}}">
                                         <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
                                     </a> 
-                                    <a href="#">
+                                    <a data-id="{{ $form->id }}" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">
                                         <i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i>
-                                    </a>                               
+                                    </a>                            
                                 </center>												
                             </td>
                         </tr>
@@ -67,11 +67,44 @@
     </div>
 </div> 
 
+
+<div id="modal-hapus" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Delete This Form?</h4>
+            </div>
+            <div class="modal-body">
+                <form action="" method="POST" id="delete-form">
+                    {{ csrf_field() }}
+                    <div style="display: unset;" class="modal-footer">  
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-danger btn-block">Delete</button>
+                            </div>      
+                            <div class="col-md-6">
+                                <button class="btn btn-info btn-block" data-dismiss="modal">Cancel</button>	
+                            </div>
+                        </div>
+                    </div> 
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script> 
 <script>
-$(document).ready(function() {
-    $('#example').DataTable();
-} );       
+    $(document).ready(function() {
+        $('#example').DataTable();
+    } );       
+</script>
+<script>
+    $(document).on("click", ".hapus", function () {
+        var id = $(this).data('id');
+        var link = '/delete-form/' + id;
+        $('#delete-form').attr("action", link);
+    });
 </script>
 @endsection

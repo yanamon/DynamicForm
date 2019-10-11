@@ -1,5 +1,4 @@
 $(document).ready(function() {
-    y = 0; 
     var input_is_option;
     var input_label;
     var input_type;

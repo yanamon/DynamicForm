@@ -1,5 +1,4 @@
 $(document).ready(function() {
-    y = 0; 
     var input_is_option;
     var input_label;
     var input_type;
@@ -10,6 +9,7 @@ $(document).ready(function() {
     var hidden_html;
     var hidden_html2;
     var input_key;
+
 
     $("#btn-submit-input").on("click", function(e){ 
         e.preventDefault();
@@ -79,7 +79,7 @@ $(document).ready(function() {
 
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
-
+        y++;
 
 
         $(".card-input").hover(function() {
@@ -179,9 +179,7 @@ $(document).ready(function() {
                 });
                 draggable.swap(droppable);
             }
-        });
-
-        y++;      
+        });      
         $('#add-modal').modal('toggle');
     });    
 

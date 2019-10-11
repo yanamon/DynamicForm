@@ -1,6 +1,5 @@
 note:
 
-delete form 
 edit form
 export project 
 export form

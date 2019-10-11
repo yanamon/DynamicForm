@@ -220,4 +220,23 @@ class FormController extends Controller
         return response()->json($row);
     }
 
+    
+    public function edit($id)
+    {
+        $inputTypes = InputType::get();
+        $form = Form::with('formInput')->find($id);
+        $project_id = $form->project_id;
+        return view('form-edit', compact('form','inputTypes','project_id'));
+    }
+
+
+    public function destroy($id)
+    {
+        $form = Form::find($id);
+        $project_id = $form->project_id;
+        $inputs = FormInput::where('form_id', $form->id)->delete();
+        $form = Form::find($id)->delete();
+        return redirect('project/'.$project_id);
+    }
+
 }
