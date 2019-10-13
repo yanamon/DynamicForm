@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Storage;
 use App\InputType;
 use App\Form;
 use App\FormInput;
+use App\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -57,54 +58,81 @@ class FormController extends Controller
 
     }
 
-    public function exportProject(Request $request)
+    public function update(Request $request)
     {
-        // $request->validate([
-        //     'title' => 'required',
-        //     'html' => 'required',
-        //     'form_name' => 'required'
-        // ]);
-        // $form = new Form();
-        // $form->title = $request->title;
-        // $form->description = $request->description;
-        // $form->id_user = Auth::user()->id;
-        // $form->save();
-        // $last_form_id = Form::max('id');
-        // foreach($request->html as $html){
-        //     $form_input = new FormInput();
-        //     $form_input->html = $html;
-        //     $form_input->form_id = $last_form_id;
-        //     $form_input->save();
-        // }
-        // $htmls = $this->createHtml($request);
-        // $filename = $request->title.".php";
-        // Storage::put($filename, $htmls);
-        // return redirect('show-form/'.$last_form_id);
+        $request->validate([
+            'title' => 'required',
+            'project_id' => 'required',
+            'html' => 'required',
+            'form_name' => 'required'
+        ]);
+        $form = Form::find($request->id_edit);
+        $form->title = $request->title;
+        $form->description = $request->description;
+        $form->form_name = $request->form_name;
+        $form->save();
+        
+        FormInput::where('form_id', $request->id_edit)->delete();
+
+        foreach($request->html as $html){
+            $form_input = new FormInput();
+            $form_input->html = $html;
+            $form_input->form_id = $request->id_edit;
+            $form_input->save();
+        }
+        return redirect('project/'.$request->project_id);
+
     }
 
-    public function exportForm(Request $request)
+    public function exportProject($id)
     {
-        // $request->validate([
-        //     'title' => 'required',
-        //     'html' => 'required',
-        //     'form_name' => 'required'
-        // ]);
-        // $form = new Form();
-        // $form->title = $request->title;
-        // $form->description = $request->description;
-        // $form->id_user = Auth::user()->id;
-        // $form->save();
-        // $last_form_id = Form::max('id');
-        // foreach($request->html as $html){
-        //     $form_input = new FormInput();
-        //     $form_input->html = $html;
-        //     $form_input->form_id = $last_form_id;
-        //     $form_input->save();
-        // }
-        // $htmls = $this->createHtml($request);
-        // $filename = $request->title.".php";
-        // Storage::put($filename, $htmls);
-        // return redirect('show-form/'.$last_form_id);
+        $forms = Form::where('project_id', $id)->get();
+        foreach($forms as $form){
+            $this->export($form->id);
+        }
+        
+        return redirect('project/'.$id);
+    }
+
+    public function exportForm($id)
+    {
+        $form = Form::with('formInput')->find($id);
+        $project = Project::find($form->project_id);
+
+        $request = (array)$form;
+        $request['app_key'] = $project->dropbox_app_key;
+        $request['app_secret'] = $project->dropbox_app_secret;
+        $request['access_token'] = $project->dropbox_access_token;
+        $request['title'] = $form->title;
+        $request['description'] = $form->description;
+        $request['form_name'] = $form->form_name;
+        $request['formInput'] = $form->formInput;
+        $request = (object)$request;
+
+        $htmls = $this->createHtml($request);
+        $filename = $form->form_name.".php";
+        Storage::put($filename, $htmls);
+        return redirect('project/'.$project->id);
+    }
+
+    public function export($id)
+    {
+        $form = Form::with('formInput')->find($id);
+        $project = Project::find($form->project_id);
+
+        $request = (array)$form;
+        $request['app_key'] = $project->dropbox_app_key;
+        $request['app_secret'] = $project->dropbox_app_secret;
+        $request['access_token'] = $project->dropbox_access_token;
+        $request['title'] = $form->title;
+        $request['description'] = $form->description;
+        $request['form_name'] = $form->form_name;
+        $request['formInput'] = $form->formInput;
+        $request = (object)$request;
+
+        $htmls = $this->createHtml($request);
+        $filename = $form->form_name.".php";
+        Storage::put($filename, $htmls);
     }
 
     public function createHtml($request){
@@ -123,10 +151,10 @@ class FormController extends Controller
         if($request->description!=null) $htmls = $htmls.'<label>'.$request->description.'</label>';
         $htmls = $htmls.'</div>';
         $htmls = $htmls.'<form action="#" method="POST">';
-        foreach($request->html as $html){
-            $htmls = $htmls.$html;
+        foreach($request->formInput as $formInput){
+            $htmls = $htmls.$formInput->html;
         }
-        $htmls= $htmls.'<button type="submit" class="btn btn-success">Submit</button>';
+        $htmls= $htmls.'<div class="form-group card-title" style="margin-bottom:30px;"><button type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
         $htmls = $htmls.'</form>';
         $htmls = $htmls.'</div></div></div></div>';
         $htmls = $htmls.'</body>';
@@ -141,6 +169,7 @@ class FormController extends Controller
         $head = $head.'<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">';
         $head = $head.'<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>';
         $head = $head.'<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>';
+        $head = $head.$this->createCss();
         $head = $head."</head>";
         return $head;
     }
@@ -215,8 +244,30 @@ class FormController extends Controller
         return $php;
     }
 
+    public function createCss(){
+        $css = '<style>';
+        $css = $css.'#card {border-radius:5px;background-color:white;padding-top:30px;padding-bottom:0px;padding-right:0px;padding-left:0px;margin-bottom: 10px;}';
+        $css = $css.'.card-title{padding-right: 30px;padding-left: 30px; }';
+        $css = $css.'.card-input { padding-top:15px; padding-bottom:5px;padding-right: 30px;padding-left: 30px;}';
+        $css = $css.'</style>';
+        return $css;
+    }
+
     public function ajaxCheckFormName(Request $request){
-        $row = Form::where('project_id', $request->projectId)->where('form_name', $request->formName)->get();
+        if($request->is_edit == "edit"){
+            $data = Form::where('project_id', $request->projectId)->where('form_name', $request->formName)->get();
+            $row = count($data);
+            if(count($data) > 0){
+                foreach($data as $data){
+                    if($data->id == $request->id_edit) $row = 0;
+                }
+            }
+        }
+        else {
+            $data = Form::where('project_id', $request->projectId)->where('form_name', $request->formName)->get();
+            $row = count($data);
+        }
+
         return response()->json($row);
     }
 

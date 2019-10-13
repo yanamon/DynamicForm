@@ -17,8 +17,8 @@ Route::post('/update-form', 'FormController@update');
 Route::post('/delete-form/{id}', 'FormController@destroy');
 
 
-Route::post('/export-project', 'FormController@exportProject');
-Route::post('/export-form', 'FormController@exportForm');
+Route::get('/export-project/{id}', 'FormController@exportProject');
+Route::get('/export-form/{id}', 'FormController@exportForm');
 
 
 Route::post('/ajax-check-form-name', 'FormController@ajaxCheckFormName');

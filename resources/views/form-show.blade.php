@@ -37,6 +37,28 @@
                 </div>
             </div>
         </div>
+        <div class="col-md-1">
+            <button id="btn-add" data-toggle="modal" data-target="#export-modal" title="Export Form" class="btn btn-info btn-circle" type="button"><i class="fa fa-arrow-right fa-lg"></i></button>
+        </div>    
     </div>
 </div>
+
+<!-- Export Modal -->
+<div class="modal" id="export-modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Export Form</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>     
+            <div class="modal-body">
+                Export this form?
+            </div>   
+            <div class="modal-footer">
+                <a href="/export-form/{{$form->id}}"><button id="btn-export" type="button" class="btn btn-danger">Export</button></a>
+            </div>  
+        </div>
+    </div>
+</div> 
+
 @endsection

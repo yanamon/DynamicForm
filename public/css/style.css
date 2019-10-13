@@ -14,22 +14,25 @@ body {
     margin-bottom: 10px;
 }
 
+
+.card-title{
+    padding-right: 30px;
+    padding-left: 30px;
+}
+
+
 .card-input {
     padding-top:15px;
     padding-bottom:5px;
     padding-right: 30px;
     padding-left: 30px;
 }
+
 .ui-state-hover {  
     background:lightgray   
 }
 .ui-state-active {
     background:lightyellow; 
-}
-
-.card-title{
-    padding-right: 30px;
-    padding-left: 30px;
 }
 
 .card-input-shadow{

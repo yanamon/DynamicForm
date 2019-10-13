@@ -74,8 +74,8 @@ $(document).ready(function() {
         div_html2 = input_html2 + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div>';
         input_html = input_html + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div></div>';
         input_html2 = input_html2 + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div></div>';
-        hidden_html = div_html + '<input id="html-'+y+'" type="hidden" name="html[]" value="'+input_html+'"></div>';
-        hidden_html2 = div_html2 + '<input id="html-'+y+'" type="hidden" name="html[]" value="'+input_html2+'"></div>';
+        hidden_html = div_html + '<input type="hidden" name="html[]" value="'+input_html+'"></div>';
+        hidden_html2 = div_html2 + '<input type="hidden" name="html[]" value="'+input_html2+'"></div>';
 
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
@@ -188,7 +188,6 @@ $(document).ready(function() {
         var card_key = $('#card-key').val();
         var keys_length = keys.length; 
         $('#card-input-'+card_id).remove();
-        $('#html-'+card_id).remove();
         for(a=0; a<=keys_length; a++){    
             var index = keys.indexOf(card_key);
             if (index > -1) keys.splice(index, 1);

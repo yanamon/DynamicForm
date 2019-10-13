@@ -10,10 +10,6 @@
             alert("Form title is required");
             $('#save-modal').modal('toggle');
         }
-        else if(y==0){
-            alert("Form Input is required");
-            $('#save-modal').modal('toggle');
-        }
         else if(!formName) {
             alert("Form Name is required");
         }

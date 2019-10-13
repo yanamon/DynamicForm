@@ -5,13 +5,11 @@
     function validate() {
         var formTitle = $('#formTitle').val();
         var formName = $('#formName').val();
+        var id_edit = $('#id_edit').val();
+        var is_edit = $('#is_edit').val();
         var projectId = $('#projectId').val();
         if (!formTitle) {
             alert("Form title is required");
-            $('#save-modal').modal('toggle');
-        }
-        else if(y==0){
-            alert("Form Input is required");
             $('#save-modal').modal('toggle');
         }
         else if(!formName) {
@@ -22,10 +20,13 @@
                 url: "/ajax-check-form-name",
                 method : 'post',
                 data:{
+                    id_edit:id_edit,
+                    is_edit:is_edit,
                     formName:formName, 
                     projectId:projectId
                 },
                 success:function(data){
+                    console.log(data);
                     if(data==0){
                         $('#dynamic-form').submit();
                     }
@@ -58,6 +59,8 @@
                         <input value="{{$form->title}}" id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
                         <input value="{{$form->description}}" class="form-control form-control-sm" type="text" name="description" placeholder="Description (Optional)">
                         <input id="projectId" type="hidden" name="project_id" value="{{$project_id}}">
+                        <input type="hidden" id="is_edit" value="edit">
+                        <input type="hidden" id="id_edit" name="id_edit"  value="{{$form->id}}">
                     </div> 
                     <!-- Save Modal -->
                     <div class="modal" id="save-modal">
@@ -81,7 +84,7 @@
                     </div> 
                     @foreach($form->formInput as $input)
                         {!!$input->html!!}
-
+                        <input class="temp-html" value="{{$input->html}}" type="hidden">
                     @endforeach 
                 </form>
             </div>
@@ -199,13 +202,22 @@
 
 <script>
     $(document).ready(function() {
-        $('.card-input').each(function() {
+        var temp_html = [];
+        $('.temp-html').each(function() {
+            var html = '<input type="hidden" name="html[]" value="'+$(this).val()+'">';
+            temp_html.push(html);
+            $(this).remove();
+        });
+
+        $('.card-input').each(function(i) {
             var id = $(this).attr('data-id');
             if(id>y) y = id;
             var key = $(this).attr('data-key');
             keys[id]=key;
+            $(this).append(temp_html[i]);
         })
-        if(y!=0) y++;
+
+        y++;
     });
 </script>
 
@@ -266,7 +278,6 @@
                 if(index>1)
                 $("#input_fields_wrap2").append('<div class="row"><div class="col-md-11 col-sm-10 col-9"><input type="text" value='+item+' name="option[]" placeholder="New Option" class="option2 form-control form-control-sm" id="usr"></div><a href="#" class="remove_field"><i class="fa fa-times fa-lg"></i></a></div>');
             }
-
         }
         if(dropdown_options.length > 0) isOption(dropdown_options);
         else if(edit_options.length > 1) isOption(edit_options);

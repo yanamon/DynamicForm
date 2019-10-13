@@ -47,7 +47,7 @@
 <a href="/create-form/{{$project_id}}">
     <button style="position:fixed; right:3%; bottom:115px;" class="btn btn-success btn-circle" type="button"><i class="fa fa-plus fa-lg"></i></button>
 </a>
-<button style="position:fixed; right:3%; bottom:60px;"  data-toggle="modal" data-target="#export-modal" title="Export Form" class="btn btn-info btn-circle" type="button"><i class="fa fa-arrow-right fa-lg"></i></button>
+<button style="position:fixed; right:3%; bottom:60px;"  data-toggle="modal" data-target="#export-modal" title="Export Project" class="btn btn-info btn-circle" type="button"><i class="fa fa-arrow-right fa-lg"></i></button>
 
 <!-- Export Modal -->
 <div class="modal" id="export-modal">
@@ -61,7 +61,7 @@
                 Export this project?
             </div>   
             <div class="modal-footer">
-                <a href="/export-project"><button id="btn-export" type="button" class="btn btn-danger">Export</button></a>
+                <a href="/export-project/{{$project_id}}"><button id="btn-export" type="button" class="btn btn-danger">Export</button></a>
             </div>  
         </div>
     </div>

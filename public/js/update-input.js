@@ -94,8 +94,8 @@ $(document).ready(function() {
         updated_html2 = updated_html2 + input_html2;
         updated_html2 = updated_html2 + '</div>';
 
-        hidden_html = input_html+'<input id="html-'+card_id+'" type="hidden" name="html[]" value="'+updated_html+'">';
-        hidden_html2 = input_html2+'<input id="html-'+card_id+'" type="hidden" name="html[]" value="'+updated_html2+'">';
+        hidden_html = input_html+'<input type="hidden" name="html[]" value="'+updated_html+'">';
+        hidden_html2 = input_html2+'<input  type="hidden" name="html[]" value="'+updated_html2+'">';
 
         if(input_required == 'Yes') {
             $('#card-input-'+card_id).append(hidden_html2);  
