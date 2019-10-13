@@ -37,9 +37,9 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-1">
+        {{-- <div class="col-md-1">
             <button id="btn-add" data-toggle="modal" data-target="#export-modal" title="Export Form" class="btn btn-info btn-circle" type="button"><i class="fa fa-arrow-right fa-lg"></i></button>
-        </div>    
+        </div>     --}}
     </div>
 </div>
 

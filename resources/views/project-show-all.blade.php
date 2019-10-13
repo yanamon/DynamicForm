@@ -24,7 +24,7 @@
                             <td>{{$project->project_name}}</td>
                             <td>{{$project->dropbox_app_key}}</td>
                             <td>{{$project->dropbox_app_secret}}</td>
-                            <td>{{$project->dropbox_access_token}}</td>
+                            <td>{{ str_limit($project->dropbox_access_token, $limit = 15, $end = '...') }}</td>
                             <td>
                                 <center>	
                                     <a href="/project/{{$project->id}}">

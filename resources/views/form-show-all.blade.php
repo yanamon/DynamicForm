@@ -7,40 +7,46 @@
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-1"></div>
         <div class="col-md-10">
-            <div class="table-responsive" style="background:white;padding:15px 5px;">
-                <table id="example" class="table table-bordered">
-                    <thead class="thead-dark">
-                        <th>No</th>
-                        <th>Form Name</th>
-                        <th>Form Title</th>
-                        <th>Form Description</th>
-                        <th>Action</th>
-                    </thead>
-                    <tbody>
-                    @foreach($forms as $i => $form)
-                        <tr>
-                            <td>{{$i+1}}</td>
-                            <td>{{$form->form_name}}</td>
-                            <td>{{$form->title}}</td>
-                            <td>@if($form->description!=null){{$form->description}}@else No Description @endif</td>
-                            <td>
-                                <center>	
-                                    <a href="/show-form/{{$form->id}}">
-                                        <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
-                                    </a>     
-                                    <a href="/edit-form/{{$form->id}}">
-                                        <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
-                                    </a> 
-                                    <a data-id="{{ $form->id }}" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">
-                                        <i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i>
-                                    </a>                            
-                                </center>												
-                            </td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <form id="check-export-form" action="/export-project/{{$project_id}}" method="get">
+                <div class="table-responsive" style="background:white;padding:15px 5px;">
+                    <table id="example" class="table table-bordered">
+                        <thead class="thead-dark">
+                            <th>No</th>
+                            <th>Form Name</th>
+                            <th>Form Title</th>
+                            <th>Form Description</th>
+                            <th>Action</th>
+                            <th>Export <input id="check-all" type="checkbox" checked></th>
+                        </thead>
+                        <tbody>
+                            @foreach($forms as $i => $form)
+                                <tr>
+                                    <td>{{$i+1}}</td>
+                                    <td>{{$form->form_name}}</td>
+                                    <td>{{$form->title}}</td>
+                                    <td>@if($form->description!=null){{$form->description}}@else No Description @endif</td>
+                                    <td>
+                                        <center>	
+                                            <a href="/show-form/{{$form->id}}">
+                                                <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
+                                            </a>     
+                                            <a href="/edit-form/{{$form->id}}">
+                                                <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
+                                            </a> 
+                                            <a data-id="{{ $form->id }}" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">
+                                                <i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i>
+                                            </a>                            
+                                        </center>												
+                                    </td>
+                                    <td>
+                                        <center><input class="check-form" name="checked_form[]" type="checkbox" value="{{$form->id}}" checked></center>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>      
+            </form>
         </div>
     </div>
 </div>
@@ -61,7 +67,7 @@
                 Export this project?
             </div>   
             <div class="modal-footer">
-                <a href="/export-project/{{$project_id}}"><button id="btn-export" type="button" class="btn btn-danger">Export</button></a>
+                <button id="btn-export" type="button" class="btn btn-danger" onClick="document.getElementById('check-export-form').submit();">Export</button>
             </div>  
         </div>
     </div>
@@ -105,6 +111,11 @@
         var id = $(this).data('id');
         var link = '/delete-form/' + id;
         $('#delete-form').attr("action", link);
+    });
+</script>
+<script>
+    $("#check-all").click(function(){
+        $('input:checkbox').not(this).prop('checked', this.checked);
     });
 </script>
 @endsection
