@@ -58,7 +58,7 @@ class ProjectController extends Controller
         $project->dropbox_access_token = $request->dropbox_access_token;
         $project->user_id = Auth::user()->id;
         $project->save();
-        return redirect('show-all-project/');
+        return redirect('all-project/');
     }
 
     /**

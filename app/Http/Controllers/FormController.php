@@ -18,14 +18,15 @@ class FormController extends Controller
         $this->middleware('auth');
     }
 
+    public function index($project_id)
+    {
+        $forms = Form::where('project_id', $project_id)->orderBy('id', 'DESC')->get();
+        return view('form-show-all', compact('forms','project_id'));
+    }
+
     public function show($id){
         $form = Form::with('formInput')->find($id);
         return view('form-show', compact('form'));
-    }
-
-    public function index($project_id){
-        $forms = Form::where('project_id', $project_id)->orderBy('id', 'DESC')->get();
-        return view('form-show-all', compact('forms','project_id'));
     }
 
     public function create($project_id)
@@ -117,10 +118,8 @@ class FormController extends Controller
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         foreach ($files as $name => $file)
         {
-            // We're skipping all subfolders
             if (!$file->isDir()) {
                 $filePath     = $file->getRealPath();
-                // extracting filename with substr/strlen
                 $relativePath = $project->project_name.'/'. substr($filePath, strlen($path));
                 $zip->addFile($filePath, $relativePath);
             }
@@ -128,30 +127,6 @@ class FormController extends Controller
         $zip->close();
         return response()->download($zip_file);
     }
-
-    // public function exportForm($id)
-    // {
-    //     $form = Form::with('formInput')->find($id);
-    //     $project = Project::find($form->project_id);
-
-    //     $request = (array)$form;
-    //     $request['app_key'] = $project->dropbox_app_key;
-    //     $request['app_secret'] = $project->dropbox_app_secret;
-    //     $request['access_token'] = $project->dropbox_access_token;
-    //     $request['title'] = $form->title;
-    //     $request['description'] = $form->description;
-    //     $request['form_name'] = $form->form_name;
-    //     $request['formInput'] = $form->formInput;
-    //     $request = (object)$request;
-
-    //     $htmls = $this->createHtml($request);
-    //     $filename = $form->form_name.".php";
-    //     $user_path = Auth::user()->id.'/';
-    //     Storage::disk('public')->deleteDirectory($user_path);
-    //     Storage::disk('public')->makeDirectory($user_path);
-    //     Storage::disk('public')->put($user_path.$filename, $htmls);
-    //     return redirect('project/'.$project->id);
-    // }
 
     public function export($id, $project_path)
     {
@@ -256,7 +231,7 @@ class FormController extends Controller
         $php = $php.        '$dropboxFile = new DropboxFile($file_name); ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]);';
         $php = $php.        '$file->getName(); ';
-        $php = $php.        'unlink($path); ';
+        $php = $php.        'unlink($file_name); ';
         $php = $php.        'session_start(); ';
         $php = $php.        '$_SESSION["success"] = 1; ';
         $php = $php.        'header("Location: ".$_SERVER["PHP_SELF"]); ';
