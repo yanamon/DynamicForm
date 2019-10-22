@@ -137,6 +137,7 @@ class FormController extends Controller
         $request['app_key'] = $project->dropbox_app_key;
         $request['app_secret'] = $project->dropbox_app_secret;
         $request['access_token'] = $project->dropbox_access_token;
+        $request['project_name'] = $project->project_name;
         $request['title'] = $form->title;
         $request['description'] = $form->description;
         $request['form_name'] = $form->form_name;
@@ -199,6 +200,7 @@ class FormController extends Controller
         $php = $php.        '$app_key = "'.$request->app_key.'"; ';
         $php = $php.        '$app_secret = "'.$request->app_secret.'"; ';
         $php = $php.        '$access_token = "'.$request->access_token.'"; ';
+        $php = $php.        '$project_name = "'.$request->project_name.'"; ';
         $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
         $php = $php.        '$file_name = "data".".json"; ';
         
@@ -222,12 +224,18 @@ class FormController extends Controller
         $php = $php.        '$dropbox = new Dropbox($app); ';
 
         $php = $php.        'try{';
-        $php = $php.        '    $folder = $dropbox->getMetadata("/".$folder_name);';
+        $php = $php.        '    $project_folder = $dropbox->getMetadata("/".$project_name);';
         $php = $php.        '}catch(Exception $e){';
-        $php = $php.        '    $folder = $dropbox->createFolder("/".$folder_name);';
+        $php = $php.        '    $project_folder = $dropbox->createFolder("/".$project_name);';
         $php = $php.        '}';
 
-        $php = $php.        '$path = "/".$folder_name."/".$file_name;';
+        $php = $php.        'try{';
+        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name);';
+        $php = $php.        '}catch(Exception $e){';
+        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name);';
+        $php = $php.        '}';
+
+        $php = $php.        '$path = "/".$project_name."/".$folder_name."/".$file_name;';
         $php = $php.        '$dropboxFile = new DropboxFile($file_name); ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]);';
         $php = $php.        '$file->getName(); ';

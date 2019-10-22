@@ -46,7 +46,7 @@ class ProjectController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'project_name' => 'required',
+            'project_name' => 'required|unique:projects',
             'dropbox_app_key' => 'required',
             'dropbox_app_secret' => 'required',
             'dropbox_access_token' => 'required'
@@ -94,7 +94,7 @@ class ProjectController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'project_name' => 'required',
+            'project_name' => 'required|unique:projects,project_name,'.$request->id,
             'dropbox_app_key' => 'required',
             'dropbox_app_secret' => 'required',
             'dropbox_access_token' => 'required'
