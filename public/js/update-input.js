@@ -59,11 +59,11 @@ $(document).ready(function() {
                     var option =  $(this).val();
                     if(option!=""){
                         if(input_type=="checkbox") {
-                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+y+']['+i+'] value='+option+'>'+option+'</label></div>';
+                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+card_id+']['+i+'] value='+option+'>'+option+'</label></div>';
                             input_html = input_html + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+card_id+']['+i+'] value='+option+'>'+option+'</label></div>';
                         }
                         else {
-                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+y+'] value='+option+'>'+option+'</label></div>';            
+                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+card_id+'] value='+option+'>'+option+'</label></div>';            
                             input_html = input_html + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+card_id+'] value='+option+'>'+option+'</label></div>';
                         }
                         i++;
@@ -76,7 +76,7 @@ $(document).ready(function() {
             else {alert("input type underconstruction");return;}
         }
         else{ 
-            input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';
+            input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' required>';
             input_html = input_html + '<input class=form-control type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' >';
         }
         deleteInput();
@@ -85,7 +85,7 @@ $(document).ready(function() {
 
         
         input_html=input_html + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
-        input_html2=input_html2 + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div>';
+        input_html2=input_html2 + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
         
         var updated_html = '<div id=card-input-'+card_id+' data-required='+input_required+' data-key='+input_key+' data-id='+card_id+' class=card-input>'
         updated_html = updated_html + input_html;
@@ -93,9 +93,11 @@ $(document).ready(function() {
         var updated_html2 = '<div id=card-input-'+card_id+' data-required='+input_required+' data-key='+input_key+' data-id='+card_id+' class=card-input>'
         updated_html2 = updated_html2 + input_html2;
         updated_html2 = updated_html2 + '</div>';
-
         hidden_html = input_html+'<input type="hidden" name="html[]" value="'+updated_html+'">';
         hidden_html2 = input_html2+'<input  type="hidden" name="html[]" value="'+updated_html2+'">';
+
+        hidden_html = hidden_html+'<input type="hidden" name="input_key[]" value="'+input_key+'">';
+        hidden_html2 = hidden_html2+'<input  type="hidden" name="input_key[]" value="'+input_key+'">';
 
         if(input_required == 'Yes') {
             $('#card-input-'+card_id).append(hidden_html2);  

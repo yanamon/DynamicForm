@@ -10,6 +10,9 @@ use App\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use File;
+use Kunnu\Dropbox\DropboxFile; 
+use Kunnu\Dropbox\DropboxApp; 
+use Kunnu\Dropbox\Dropbox; 
 
 class FormController extends Controller
 {
@@ -40,6 +43,7 @@ class FormController extends Controller
         $request->validate([
             'title' => 'required',
             'project_id' => 'required',
+            'input_key' => 'required',
             'html' => 'required',
             'form_name' => 'required'
         ]);
@@ -50,9 +54,10 @@ class FormController extends Controller
         $form->form_name = $request->form_name;
         $form->save();
         $last_form_id = Form::max('id');
-        foreach($request->html as $html){
+        foreach($request->html as  $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
+            $form_input->input_key = $request->input_key[$i];
             $form_input->form_id = $last_form_id;
             $form_input->save();
         }
@@ -66,6 +71,7 @@ class FormController extends Controller
             'title' => 'required',
             'project_id' => 'required',
             'html' => 'required',
+            'input_key' => 'required',
             'form_name' => 'required'
         ]);
         $form = Form::find($request->id_edit);
@@ -76,9 +82,10 @@ class FormController extends Controller
         
         FormInput::where('form_id', $request->id_edit)->delete();
 
-        foreach($request->html as $html){
+        foreach($request->html as $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
+            $form_input->input_key = $request->input_key[$i];
             $form_input->form_id = $request->id_edit;
             $form_input->save();
         }
@@ -94,7 +101,7 @@ class FormController extends Controller
             if($i==0) $forms = Form::where('id', $checked_form_id);
             else $forms->orWhere('id', $checked_form_id);
         }  
-        $forms = $forms->get();
+        $forms = $forms->with('formInput')->get();
         $project = Project::find($id);
 
         $user_path = Auth::user()->id.'/';
@@ -103,12 +110,29 @@ class FormController extends Controller
         $project_path = $user_path.$project->project_name.'/';
         Storage::disk('public')->makeDirectory($project_path);
         $storage_path1 = storage_path('app/dropbox');
+        $storage_path3 = storage_path('app/sync');
         $storage_path2 = storage_path('app/public/' . $project_path);
         File::copyDirectory($storage_path1 , $storage_path2);
+        File::copyDirectory($storage_path3 , $storage_path2);
         
-        foreach($forms as $form){
+        
+        $prepend = '<?php ';
+        $prepend = $prepend.'$app_key="'.$project->dropbox_app_key.'"; ';
+        $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
+        $prepend = $prepend.'$access_token="'.$project->dropbox_access_token.'"; ';
+        $prepend = $prepend.'$project_name="'.$project->project_name.'"; ';
+        foreach($forms as $i => $form){
             $this->export($form->id, $project_path);
+            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"] = "'.$form->form_name.'";';
+            foreach($form->formInput as $j => $formInput){
+                $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
+            }
         }  
+        $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
+        $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
+        $file = storage_path('app/public/'.$project_path.'sync/sync_setter.php');
+        $fileContents = file_get_contents($file);
+        file_put_contents($file, $prepend . $fileContents);
 
         $zip_file = $project->project_name.'.zip';
         $zip = new \ZipArchive();
@@ -125,6 +149,33 @@ class FormController extends Controller
             }
         }
         $zip->close();
+
+        $app = new DropboxApp($project->dropbox_app_key, $project->dropbox_app_secret, $project->dropbox_access_token);
+        $dropbox = new Dropbox($app);
+        $project_name = $project->project_name;
+        foreach($forms as $i => $form){
+            $folder_name = $form->form_name;
+            try{
+                $project_folder = $dropbox->getMetadata("/".$project_name);
+            }catch(\Exception $e){
+                $project_folder = $dropbox->createFolder("/".$project_name);
+            }
+
+            try{
+                $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name);
+            }catch(\Exception $e){
+                $folder = $dropbox->createFolder("/".$project_name."/".$folder_name);
+            }
+
+            try{
+                $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/synchronized");
+                $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/unsynchronized");
+            }catch(\Exception $e){
+                $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/synchronized");
+                $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/unsynchronized");
+            }
+        }
+        
         return response()->download($zip_file);
     }
 
@@ -235,7 +286,15 @@ class FormController extends Controller
         $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name);';
         $php = $php.        '}';
 
-        $php = $php.        '$path = "/".$project_name."/".$folder_name."/".$file_name;';
+        $php = $php.        'try{';
+        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/synchronized");';
+        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/unsynchronized");';
+        $php = $php.        '}catch(Exception $e){';
+        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/synchronized");';
+        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/unsynchronized");';
+        $php = $php.        '}';
+
+        $php = $php.        '$path = "/".$project_name."/".$folder_name."/unsynchronized/".$file_name;';
         $php = $php.        '$dropboxFile = new DropboxFile($file_name); ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]);';
         $php = $php.        '$file->getName(); ';

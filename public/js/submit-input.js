@@ -74,8 +74,11 @@ $(document).ready(function() {
         div_html2 = input_html2 + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div>';
         input_html = input_html + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div></div>';
         input_html2 = input_html2 + '<input type=hidden name=input_label['+y+'] value='+input_key+'>' + '</div></div>';
-        hidden_html = div_html + '<input type="hidden" name="html[]" value="'+input_html+'"></div>';
-        hidden_html2 = div_html2 + '<input type="hidden" name="html[]" value="'+input_html2+'"></div>';
+        hidden_html = div_html + '<input type="hidden" name="html[]" value="'+input_html+'">';
+        hidden_html2 = div_html2 + '<input type="hidden" name="html[]" value="'+input_html2+'">';
+
+        hidden_html = hidden_html + '<input type="hidden" name="input_key[]" value="'+input_key+'"></div>';
+        hidden_html2 = hidden_html2 + '<input type="hidden" name="input_key[]" value="'+input_key+'"></div>';
 
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
