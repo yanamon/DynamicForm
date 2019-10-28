@@ -1,5 +1,6 @@
 note:
 validasi dropbox app key,secret,token pas create&edit project? / accesstoken webauth?
+data foreign csv key dropdown search
 
 pak wira:
 export .sql (checkbox pas export project)
