@@ -28,7 +28,7 @@ $(document).ready(function() {
         input_html2 = input_html;
         if(input_is_option == 1) {
             if(input_type=="dropdown"){
-                input_html = input_html + '<select class=form-control name=input_value['+y+']>';
+                input_html = input_html + '<select class=select2 name=input_value['+y+']>';
                 var i = 0;
                 $('.option').each(function() {
                     var option =  $(this).val();
@@ -159,7 +159,8 @@ $(document).ready(function() {
             return this; 
         };
 
-
+        
+        $('.select2').select2({ width: '100%' });
         $( ".card-input" ).draggable({ revert: true, helper: "clone" });
 
         $( ".card-input" ).droppable({

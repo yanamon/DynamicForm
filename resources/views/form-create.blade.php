@@ -166,7 +166,7 @@
                     </div>
                     <div class="form-group">
                         <label for="usr">Input Type:</label>
-                        <select class="form-control" id="input-types2" name="input">
+                        <select class="select2" id="input-types2" name="input" style="width:100%">
                             @foreach($inputTypes as $i => $inputType)
                                 <option data-is-option="{{$inputType->is_option}}" value="{{$inputType->html}}">{{$inputType->input_type}}</option>
                             @endforeach

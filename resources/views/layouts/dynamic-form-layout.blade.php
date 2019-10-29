@@ -21,6 +21,9 @@
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/css/select2.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/js/select2.min.js"></script>
         <script>
             $.ajaxSetup({
                 headers: {
@@ -41,7 +44,10 @@
         <script src="{{asset('/js/update-input.js')}}"></script>
 
         <link rel="stylesheet" href="{{asset('/css/style.css')}}">
-        <style></style>
+        <style>
+            .select2-selection__arrow {margin-top:3px!important;}
+            .select2-selection.select2-selection--single {height: 36px!important; padding:3px !important;}
+        </style>
     </head>
     <body id="body">
         <div class="wrapper">
@@ -107,3 +113,5 @@
     </body>
 </html>
     
+
+<script>$('.select2').select2({ width: '100%' });</script>

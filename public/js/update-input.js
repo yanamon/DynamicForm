@@ -38,7 +38,7 @@ $(document).ready(function() {
         input_html2 = input_html;
         if(input_is_option == 1) {
             if(input_type=="dropdown"){
-                input_html = input_html + '<select class=form-control name=input_value['+card_id+']>';
+                input_html = input_html + '<select class=select2 name=input_value['+card_id+']>';
                 var i = 0;
                 $('.option2').each(function() {
                     var option =  $(this).val();
@@ -173,6 +173,7 @@ $(document).ready(function() {
         //     else if(edit_options.length > 1) isOption(edit_options);
         //     $('#action-modal').modal('show');
         // });   
+        $('.select2').select2({ width: '100%' });
         $('#action-modal').modal('toggle');
     });    
  

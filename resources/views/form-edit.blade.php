@@ -85,6 +85,7 @@
                     @foreach($form->formInput as $input)
                         {!!$input->html!!}
                         <input class="temp-html" value="{{$input->html}}" type="hidden">
+                        <input class="temp-input-key" value="{{$input->input_key}}" type="hidden">
                     @endforeach 
                 </form>
             </div>
@@ -203,9 +204,16 @@
 <script>
     $(document).ready(function() {
         var temp_html = [];
+        var temp_input_key = [];
         $('.temp-html').each(function() {
             var html = '<input type="hidden" name="html[]" value="'+$(this).val()+'">';
             temp_html.push(html);
+            $(this).remove();
+        });
+
+        $('.temp-input-key').each(function() {
+            var input_key = '<input type="hidden" name="input_key[]" value="'+$(this).val()+'">';
+            temp_input_key.push(input_key);
             $(this).remove();
         });
 
@@ -215,6 +223,7 @@
             var key = $(this).attr('data-key');
             keys[id]=key;
             $(this).append(temp_html[i]);
+            $(this).append(temp_input_key[i]);
         })
 
         y++;

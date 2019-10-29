@@ -234,6 +234,8 @@ class FormController extends Controller
         $head = $head.'<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">';
         $head = $head.'<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>';
         $head = $head.'<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>';
+        $head = $head.'<script src="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/js/select2.min.js"></script>';
+        $head = $head.'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/css/select2.min.css">';
         $head = $head.$this->createCss();
         $head = $head."</head>";
         return $head;
@@ -321,6 +323,7 @@ class FormController extends Controller
         $php = $php.        '} ';
         $php = $php.    '} ';
         $php = $php.'?> ';
+        $php = $php.'<script>$(".select2").select2({ width: "100%" });</script> ';
         return $php;
     }
 
@@ -329,6 +332,8 @@ class FormController extends Controller
         $css = $css.'#card {border-radius:5px;background-color:white;padding-top:30px;padding-bottom:0px;padding-right:0px;padding-left:0px;margin-bottom: 10px;}';
         $css = $css.'.card-title{padding-right: 30px;padding-left: 30px; }';
         $css = $css.'.card-input { padding-top:15px; padding-bottom:5px;padding-right: 30px;padding-left: 30px;}';
+        $css = $css.'.select2-selection__arrow {margin-top:3px!important;}';
+        $css = $css.'.select2-selection.select2-selection--single {height: 36px!important; padding:3px !important;}';
         $css = $css.'</style>';
         return $css;
     }
