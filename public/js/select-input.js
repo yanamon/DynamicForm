@@ -15,6 +15,19 @@ $(document).ready(function() {
         if ($('option:selected', this).attr('data-is-option') == 1) {
             $('#input_fields_wrap').append('<div><input type="text" name="option[]" placeholder="New Option" class="option form-control form-control-sm" id="usr"><input type="text" name="option[]" placeholder="New Option" class="option form-control form-control-sm" id="usr"></div>');
             $('#btn-option-add').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
+            $('#btn-option-add').append('<button id="btnFileUpload" class="btn btn-success">CSV File Option</button>');
+            $('#btn-option-add').append('<br><span id="spnFilePath"></span>');
+            $('#btn-option-add').append('<input type="file" id="FileUpload1" name="csv" style="display: none" />');
+            var fileupload = document.getElementById("FileUpload1");
+            var filePath = document.getElementById("spnFilePath");
+            var button = document.getElementById("btnFileUpload");
+            button.onclick = function () {
+                fileupload.click();
+            };
+            fileupload.onchange = function () {
+                var fileName = fileupload.value.split('\\')[fileupload.value.split('\\').length - 1];
+                filePath.innerHTML = "<b>Selected File: </b>" + fileName;
+            };
         }
     });
 
