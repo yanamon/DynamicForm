@@ -107,13 +107,19 @@ class FormController extends Controller
         $user_path = Auth::user()->id.'/';
         Storage::disk('public')->deleteDirectory($user_path);
         Storage::disk('public')->makeDirectory($user_path);
-        $project_path = $user_path.$project->project_name.'/';
+        $project_path = $user_path.$project->project_name;
+        $share_path = $user_path.$project->project_name.'-share/'.$project->project_name.'-share';
         Storage::disk('public')->makeDirectory($project_path);
+        Storage::disk('public')->makeDirectory($project_path."/attachment");
+        Storage::disk('public')->makeDirectory($share_path);
         $storage_path1 = storage_path('app/dropbox');
         $storage_path3 = storage_path('app/sync');
         $storage_path2 = storage_path('app/public/' . $project_path);
+        $storage_path4 = storage_path('app/public/' . $share_path);
+        $storage_path5 = storage_path('app/public/' . $user_path.$project->project_name.'-share/');
         File::copyDirectory($storage_path1 , $storage_path2);
         File::copyDirectory($storage_path3 , $storage_path2);
+        File::copyDirectory($storage_path1 , $storage_path4);
         
         
         $prepend = '<?php ';
@@ -122,7 +128,7 @@ class FormController extends Controller
         $prepend = $prepend.'$access_token="'.$project->dropbox_access_token.'"; ';
         $prepend = $prepend.'$project_name="'.$project->project_name.'"; ';
         foreach($forms as $i => $form){
-            $this->export($form->id, $project_path);
+            $this->export($form->id, $project_path, $share_path);
             $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"] = "'.$form->form_name.'";';
             foreach($form->formInput as $j => $formInput){
                 $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
@@ -130,14 +136,14 @@ class FormController extends Controller
         }  
         $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
         $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
-        $file = storage_path('app/public/'.$project_path.'sync/sync_setter.php');
+        $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');
         $fileContents = file_get_contents($file);
-        file_put_contents($file, $prepend . $fileContents);
+        file_put_contents($file, $prepend . $fileContents);  
+        File::copyDirectory($storage_path5 , $storage_path2);
 
         $zip_file = $project->project_name.'.zip';
         $zip = new \ZipArchive();
         $zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
         $path = storage_path('app/public/'.$project_path);
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         foreach ($files as $name => $file)
@@ -179,7 +185,7 @@ class FormController extends Controller
         return response()->download($zip_file);
     }
 
-    public function export($id, $project_path)
+    public function export($id, $project_path, $share_path)
     {
         $form = Form::with('formInput')->find($id);
         $project = Project::find($form->project_id);
@@ -197,7 +203,8 @@ class FormController extends Controller
 
         $htmls = $this->createHtml($request);
         $filename = $form->form_name.".php";
-        Storage::disk('public')->put($project_path.$filename, $htmls);
+        Storage::disk('public')->put($project_path."/".$filename, $htmls);
+        Storage::disk('public')->put($share_path."/".$filename, $htmls);
     }
 
     public function createHtml($request){
@@ -215,7 +222,7 @@ class FormController extends Controller
         $htmls = $htmls.'<h3>'.$request->title.'</h3>';
         if($request->description!=null) $htmls = $htmls.'<label>'.$request->description.'</label>';
         $htmls = $htmls.'</div>';
-        $htmls = $htmls.'<form action="#" method="POST">';
+        $htmls = $htmls.'<form action="#" method="POST" enctype="multipart/form-data">';
         foreach($request->formInput as $formInput){
             $htmls = $htmls.$formInput->html;
         }
@@ -255,22 +262,33 @@ class FormController extends Controller
         $php = $php.        '$access_token = "'.$request->access_token.'"; ';
         $php = $php.        '$project_name = "'.$request->project_name.'"; ';
         $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
-        $php = $php.        '$file_name = "data".".json"; ';
         
         $php = $php.        '$values = $_POST["input_value"]; ';
         $php = $php.        '$labels = $_POST["input_label"]; ';
-        $php = $php.        '$keys = array_keys($values); ';
-        $php = $php.        '$i = 0; ';
         $php = $php.        '$row = array(); ';
+        $php = $php.        'mkdir("tmp"); ';
+        $php = $php.        'mkdir("tmp/attachment"); ';
+
+        $php = $php.        '$j=0;  ';
+        $php = $php.        '$file_names = $_FILES["input_value"]["name"]; ';
+        $php = $php.        '$file_keys = array_keys($file_names); ';
+        $php = $php.        'foreach($file_names as $file_name){  ';
+        $php = $php.        '    $new_value = array($file_keys[$j] => $file_name);  ';
+        $php = $php.        '    $values = $values + $new_value; ';
+        $php = $php.        '    $j++; ';
+        $php = $php.        '}  ';
+        $php = $php.        '$keys = array_keys($values); ';
+
+        $php = $php.        '$i = 0; ';
         $php = $php.        'foreach($values as $value){ ';      
-        $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => array_values($value)); ';
+        $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
         $php = $php.            'else $attr = array($labels[$keys[$i]] => $value); ';
         $php = $php.            '$row = $row + $attr; ';
         $php = $php.            '$i++; ';
         $php = $php.        '} ';
         
         $php = $php.        '$myJSON = json_encode($row); ';
-        $php = $php.        '$fp = fopen($file_name, "w"); ';
+        $php = $php.        '$fp = fopen("tmp/data.json", "w"); ';
         $php = $php.        'fwrite($fp, $myJSON); ';
         $php = $php.        'fclose($fp); ';
         $php = $php.        '$app = new DropboxApp($app_key, $app_secret, $access_token); ';
@@ -296,11 +314,33 @@ class FormController extends Controller
         $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/unsynchronized");';
         $php = $php.        '}';
 
-        $php = $php.        '$path = "/".$project_name."/".$folder_name."/unsynchronized/".$file_name;';
-        $php = $php.        '$dropboxFile = new DropboxFile($file_name); ';
-        $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]);';
-        $php = $php.        '$file->getName(); ';
-        $php = $php.        'unlink($file_name); ';
+        $php = $php.        '$folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/data", true);  ';
+        $php = $php.        '$data_folder_name= $folder->getName();  ';
+        $php = $php.        '$path = "/".$project_name."/".$folder_name."/".$data_folder_name."/data.json"; ';
+        $php = $php.        '$dropboxFile = new DropboxFile("tmp/data.json");  ';
+        $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
+
+        $php = $php.        '$attachment_folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/".$data_folder_name."/attachment", true); ';
+        $php = $php.        '$k=0; ';
+        $php = $php.        '$file_names = $_FILES["input_value"]["name"]; ';
+        $php = $php.        '$file_keys = array_keys($file_names); ';
+        $php = $php.        '$files = $_FILES["input_value"]["tmp_name"]; ';    
+        
+        $php = $php.        'foreach($files as $file){ ';
+        $php = $php.        '   $file_name = basename($_FILES["input_value"]["name"][$file_keys[$k]]); ';
+        $php = $php.        '   $tmp = explode(".", $file_name); $ext = end($tmp); ';
+        $php = $php.        '   $target_file = "tmp/attachment/" .$labels[$file_keys[$k]].".".$ext; ';   
+        $php = $php.        '   move_uploaded_file($file, $target_file); ';
+        $php = $php.        '   $path = "/".$project_name."/".$folder_name."/".$data_folder_name."/attachment/".$labels[$file_keys[$k]].".".$ext; ';
+        $php = $php.        '   $dropboxFile = new DropboxFile($target_file); ';
+        $php = $php.        '   $file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
+        $php = $php.        '   $k++; ';
+        $php = $php.        '} ';
+
+        $php = $php.        '$move_from = "/".$project_name."/".$folder_name."/".$data_folder_name; ';
+        $php = $php.        '$move_to = "/".$project_name."/".$folder_name."/unsynchronized/data"; ';
+        $php = $php.        '$move = $dropbox->move($move_from, $move_to, true); ';
+
         $php = $php.        'session_start(); ';
         $php = $php.        '$_SESSION["success"] = 1; ';
         $php = $php.        'header("Location: ".$_SERVER["PHP_SELF"]); ';

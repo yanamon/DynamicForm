@@ -480,7 +480,7 @@ class Dropbox
      * @link https://www.dropbox.com/developers/documentation/http/documentation#files-create_folder
      *
      */
-    public function createFolder($path, $autorename = false)
+    public function createFolder($path, $autorename)
     {
         //Path cannot be null
         if (is_null($path)) {

@@ -38,8 +38,14 @@ if(isset($_POST["folder"])){
         }
     }
     $prepend = $prepend.' ?> ';
+    $prepend = $prepend."\n";
 
     $file = 'sync_worker.php';
+    
+    $contents = file_get_contents($file);
+    $new_contents = preg_replace('/^.+\n/', '', $contents);
+    file_put_contents($file,$new_contents);
+    
     $fileContents = file_get_contents($file);
     file_put_contents($file, $prepend . $fileContents);
     echo "Save settings success";
@@ -58,7 +64,7 @@ else if(isset($_POST["server_name"])){
 
         $query = $conn->prepare("SELECT table_name, column_name
             FROM information_schema.columns 
-            WHERE table_schema = '$db'");
+            WHERE table_schema = '$db' AND column_key != 'PRI' ");
         $query->execute();
         $result['column'] = $query -> fetchAll(); 
         $query = $conn->prepare("SELECT table_name

@@ -1,9 +1,8 @@
 note:
-validasi dropbox app key,secret,token pas create&edit project? / accesstoken webauth?
 data foreign csv key dropdown search sinkron 2 arah, table search dll
-attachment
-checkbox:pake koma
 table modal
+mapping attr kolom gaharus sama
+validasi dropbox app key,secret,token pas create&edit project? / accesstoken webauth?
 
 pak wira:
 export .sql (checkbox pas export project)
