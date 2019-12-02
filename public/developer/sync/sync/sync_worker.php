@@ -1,5 +1,6 @@
 
 
+
 <?php
     require_once "../dropbox/autoload.php"; 
     use Kunnu\Dropbox\DropboxFile; 
@@ -44,8 +45,9 @@
                         else $max_id = $row['max_id'] + 1; 
                     }
                     $attachment_folder = $max_id;
-                    mkdir("../attachment");
-                    mkdir("../attachment/".$attachment_folder);
+
+                    if (!file_exists("../attachment")) mkdir("../attachment");
+                    if (!file_exists("../attachment/".$attachment_folder)) mkdir("../attachment/".$attachment_folder);
 
                     $listAttachment = $dropbox->listFolder($path."/".$first_folder_name."/attachment");
                     $attachments = $listAttachment->getItems();
@@ -60,12 +62,17 @@
                         $last = array_pop($tmp);
                         $attachment_attr = array(implode('.', $tmp), $last);
                         $file_content[$attachment_attr[0]] = $attachment_folder."/".$attachment_folder."_".$k.".".$ext;
+                        if (($key = array_search($attachment_attr[0], $sync['attribute'])) !== false) unset($sync['attribute'][$key]);
+                        array_push($sync['attribute'],$attachment_attr[0]);
                         $k++;
                     }
 
+                    
+                    $j = 0;
                     foreach($sync['attribute'] as $i => $attr){
                         $attributes = $attributes.$attr;
-                        if($i < count($sync['attribute'])-1) $attributes = $attributes.",";
+                        if($j < count($sync['attribute'])-1) $attributes = $attributes.",";
+                        $j++;
                     }
                     $j = 0;
                     foreach($file_content as $i => $data){

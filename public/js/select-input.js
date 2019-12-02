@@ -38,6 +38,18 @@ $(document).ready(function() {
             $('#input_fields_wrap2').append('<div><input type="text" name="option[]" placeholder="New Option" class="option2 form-control form-control-sm" id="usr"><input type="text" name="option[]" placeholder="New Option" class="option2 form-control form-control-sm" id="usr"></div>');
             $('#btn-option-add2').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
         }
+        else if($('option:selected', this).attr('data-is-option') == 2){
+            $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
+            $("#json_upload2").change(function(event) {
+                var reader = new FileReader();
+                reader.onload = onReaderLoad;
+                reader.readAsText(event.target.files[0]);
+            });
+            function onReaderLoad(event){
+                var obj = JSON.parse(event.target.result);
+                table_modal_json = obj;
+            }
+        }
     });
     
     $(add_button).on("click", ".add_field_button", function(e){ //on add input button click

@@ -25,16 +25,17 @@ CREATE TABLE `tb_barang` (
   `kode_barang` varchar(100) DEFAULT NULL,
   `nama_barang` varchar(100) DEFAULT NULL,
   `harga_barang` int(6) DEFAULT NULL,
+  `foto_barang_1` varchar(255) DEFAULT NULL,
+  `foto_barang_2` varchar(255) DEFAULT NULL,
+  `id_jenis_barang` int(12) DEFAULT NULL,
   PRIMARY KEY (`id_barang`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 /*Data for the table `tb_barang` */
 
-insert  into `tb_barang`(`id_barang`,`kode_barang`,`nama_barang`,`harga_barang`) values 
-(2,'1','Beras 5kg',50000),
-(6,'2','Kopi',20000),
-(10,'A3','Roti',2000),
-(11,'A4','Garam',1000);
+insert  into `tb_barang`(`id_barang`,`kode_barang`,`nama_barang`,`harga_barang`,`foto_barang_1`,`foto_barang_2`,`id_jenis_barang`) values 
+(1,'A1','Bayam',2000,'1/1_1.png','1/1_2.png',3),
+(2,'sdfdsf','dsfds',341,'2/2_1.png','2/2_2.png',3);
 
 /*Table structure for table `tb_customer` */
 
@@ -46,18 +47,29 @@ CREATE TABLE `tb_customer` (
   `telp_customer` varchar(15) DEFAULT NULL,
   `alamat_customer` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 /*Data for the table `tb_customer` */
 
-insert  into `tb_customer`(`id`,`nama_customer`,`telp_customer`,`alamat_customer`) values 
-(1,'Alit Dwipayana','0831212321','Jalan Danau No.33A'),
-(2,'Made','089123123122','Jalan Bunga'),
-(4,'Wayan','0832132121','Jalan Sana'),
-(5,'A5','5000','fds'),
-(6,'asd','3543','\"'),
-(7,'\'','56','\''),
-(8,'/\'/\"?\"?\"?\"?\'/\'/\'/\'?\"?\"?\"?/\"/\"/\'dsda\';\';\'','3424','/\'/\"?\"?\"?\"?\'/\'/\'/\'?\"?\"?\"?/\"/\"/\'dsda\';\';\'');
+/*Table structure for table `tb_jenis_barang` */
+
+DROP TABLE IF EXISTS `tb_jenis_barang`;
+
+CREATE TABLE `tb_jenis_barang` (
+  `id` int(12) NOT NULL AUTO_INCREMENT,
+  `nama_jenis_barang` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
+
+/*Data for the table `tb_jenis_barang` */
+
+insert  into `tb_jenis_barang`(`id`,`nama_jenis_barang`) values 
+(1,'Daging'),
+(2,'Elektronik'),
+(3,'Sayuran'),
+(4,'Kebersihan'),
+(5,'Alat Tulis'),
+(6,'Buku');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

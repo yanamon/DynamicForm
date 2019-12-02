@@ -243,6 +243,9 @@ class FormController extends Controller
         $head = $head.'<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>';
         $head = $head.'<script src="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/js/select2.min.js"></script>';
         $head = $head.'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/css/select2.min.css">';
+        $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>';
+        $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>';
+        
         $head = $head.$this->createCss();
         $head = $head."</head>";
         return $head;
@@ -255,6 +258,7 @@ class FormController extends Controller
         $php = $php.    'use Kunnu\Dropbox\DropboxFile; ';
         $php = $php.    'use Kunnu\Dropbox\DropboxApp; ';
         $php = $php.    'use Kunnu\Dropbox\Dropbox; ';
+        $php = $php.    'session_start(); ';
             
         $php = $php.    'if(isset($_POST["input_value"])){ ';
         $php = $php.        '$app_key = "'.$request->app_key.'"; ';
@@ -341,7 +345,6 @@ class FormController extends Controller
         $php = $php.        '$move_to = "/".$project_name."/".$folder_name."/unsynchronized/data"; ';
         $php = $php.        '$move = $dropbox->move($move_from, $move_to, true); ';
 
-        $php = $php.        'session_start(); ';
         $php = $php.        '$_SESSION["success"] = 1; ';
         $php = $php.        'header("Location: ".$_SERVER["PHP_SELF"]); ';
         $php = $php.        'exit; ';
@@ -354,7 +357,6 @@ class FormController extends Controller
     public function createPhpSuccess(){
         $php = '';
         $php = $php.' <?php ';
-        $php = $php.    'session_start(); ';
         $php = $php.    'if (isset($_SESSION["success"])) { ';
         $php = $php.        'unset($_SESSION["success"]); ';
         $php = $php.'?> ' ;

@@ -10,10 +10,61 @@ $(document).ready(function() {
     var hidden_html2;
     var input_key;
 
-    function createTableModal(json_obj){
-        $.each(json_obj, function(i, item) {
-            alert(item.id);
-        });
+    function createTableModal(json_obj, y){
+        var i;
+        var id_name;
+        
+        var table_html = "";
+        var firstItem = json_obj[0];
+        table_html = table_html +        
+            '<div class=modal id=table-modal-'+y+'>';
+        table_html = table_html +  
+                '<div class=\'modal-dialog modal-xl modal-dialog-scrollable\'>\
+                    <div class=modal-content>\
+                        <div class=modal-header>\
+                            <h4 class=modal-title>Select Data</h4>\
+                            <button type=button class=close data-dismiss=modal>&times;</button>\
+                        </div>\
+                        <div class=modal-body>\
+                            <div class=table-responsive>\
+                                <table id=example class=table>\
+                                    <thead class=thead-dark>\
+                                        <th></th>';
+                                        $i = 0;
+                                        for(key in firstItem) {
+                                            if($i>0)table_html = table_html + '<th>'+key+'</th>';
+                                            $i++;
+                                        }
+        table_html = table_html +  '</thead>\
+                                    <tbody>\
+                                        <tr>';
+                                            i = 0
+                                            $.each(json_obj, function(key1, items) {
+                                                $.each(items, function(key2, item) {
+                                                    if(i==0) {
+                                                        id_name = key2;
+                                                        if(id_name == key2) table_html = table_html + '<td><center><input type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                    }
+                                                    else {
+                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                        else table_html = table_html + '<td>'+item+'</td>';
+                                                    }
+                                                    i++;
+                                                });
+                                            });
+        table_html = table_html +       '</tr>\
+                                    </tbody>\
+                                </table>\
+                            </div>\
+                        </div>\
+                        <div class=modal-footer>\
+                            <button data-dismiss=modal id=btn-export type=button class=\'btn btn-danger\'>Submit</button>\
+                        </div>\
+                    </div>\
+                </div>\
+            </div>\
+            <script>$(\'.table\').DataTable();</script>'
+        return table_html;
     }
 
 
@@ -73,7 +124,12 @@ $(document).ready(function() {
         }
         
         else if(input_is_option == 2) {
-            createTableModal(table_modal_json);
+            var table_html = createTableModal(table_modal_json, y);
+            var placeholder = "\'Click to Set This Input\'";
+            input_html2 = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+y+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
+            input_html2 = input_html2 + table_html;
+            input_html = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+y+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
+            input_html = input_html + table_html
             table_modal_json = 0;
         }
         else{ 
@@ -93,8 +149,9 @@ $(document).ready(function() {
 
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
+        
+        $('#table-modal-'+y).remove();
         y++;
-
 
         $(".card-input").hover(function() {
             $(this).addClass('card-input-shadow').css('cursor', 'pointer'); 
@@ -109,6 +166,7 @@ $(document).ready(function() {
             $('#card-id').val(card_id);            
             $('#card-key').val(card_key);
             
+            var isTableModal = 0;
             var edit_input_type;
             var edit_input_key;
             var edit_input_label = $("#"+card_attr_id).find('label').filter(':visible:first').html();
@@ -119,6 +177,9 @@ $(document).ready(function() {
                 if(input.attr('type')!='hidden') {
                     edit_input_type=input.attr('type');
                     edit_options.push(input.val());
+                    if(edit_input_type == 'tablemodal'){
+                        isTableModal = 1;
+                    }
                 }
                 else if(first_hidden==true) {
                     edit_input_key = input.val();
@@ -132,6 +193,7 @@ $(document).ready(function() {
                 var option = $(this);
                 dropdown_options.push(option.html());
             });
+            
             
             if(card_required == 'Yes') $("#radio-Yes").prop("checked", true);
             else if (card_required == 'No') $("#radio-No").prop("checked", true);
@@ -155,6 +217,18 @@ $(document).ready(function() {
             }
             if(dropdown_options.length > 0) isOption(dropdown_options);
             else if(edit_options.length > 1) isOption(edit_options);
+            else if(isTableModal) {
+                $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
+                $("#json_upload2").change(function(event) {
+                    var reader = new FileReader();
+                    reader.onload = onReaderLoad;
+                    reader.readAsText(event.target.files[0]);
+                });
+                function onReaderLoad(event){
+                    var obj = JSON.parse(event.target.result);
+                    table_modal_json = obj;
+                }
+            }
             $('#action-modal').modal('show');
         });   
 
