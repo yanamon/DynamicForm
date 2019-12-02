@@ -10,6 +10,12 @@ $(document).ready(function() {
     var hidden_html2;
     var input_key;
 
+    function createTableModal(json_obj){
+        $.each(json_obj, function(i, item) {
+            alert(item.id);
+        });
+    }
+
 
     $("#btn-submit-input").on("click", function(e){ 
         e.preventDefault();
@@ -64,6 +70,11 @@ $(document).ready(function() {
                 if(i<2){alert("minimum number of option is 2");return;}
             }
             else {alert("input type underconstruction");return;}
+        }
+        
+        else if(input_is_option == 2) {
+            createTableModal(table_modal_json);
+            table_modal_json = 0;
         }
         else{ 
             input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';

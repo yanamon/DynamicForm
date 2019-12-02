@@ -95,7 +95,7 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form>
+                <form enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="usr">Label:</label>
                         <input type="text" class="form-control" id="label" placeholder="Example: Product Name">
@@ -146,7 +146,7 @@
                 <input type="hidden" id="card-id">
                 <input type="hidden" id="card-key"> 
                 <input type="hidden" id="card-required">       
-                <form>
+                <form enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="usr">Label:</label>
                         <input id="edit-label" type="text" class="form-control" placeholder="Example: Product Name">

@@ -38,7 +38,7 @@
         <script src="{{asset('/js/style.js')}}"></script>
 
         
-        <script>var x = 1; var y = 0; var keys = [];</script>
+        <script> var x = 1; var y = 0; var keys = []; var table_modal_json = 0;</script>
         <script src="{{asset('/js/select-input.js')}}"></script>
         <script src="{{asset('/js/submit-input.js')}}"></script>
         <script src="{{asset('/js/update-input.js')}}"></script>
