@@ -1,0 +1,25 @@
+[ 
+{ 
+"id":1,
+"nama_jenis_barang":"Daging"
+},
+{ 
+"id":2,
+"nama_jenis_barang":"Elektronik"
+},
+{ 
+"id":3,
+"nama_jenis_barang":"Sayuran"
+},
+{ 
+"id":4,
+"nama_jenis_barang":"Kebersihan"
+},
+{ 
+"id":5,
+"nama_jenis_barang":"Alat Tulis"
+},
+{ 
+"id":6,
+"nama_jenis_barang":"Buku"
+}]

@@ -61,7 +61,7 @@
                     <h3>Dropbox Data Access</h3>
                 </div>
                 <ul class="list-unstyled components">
-                    <p>Create your own form!</p>
+                    <p>Create dropbox data model access!</p>
                     {{-- <li class="active"><a href="/">Home</a></li> --}}
                     <li><a href="/all-project">Your Project</a></li>
                     <li><a href="/create-project">Create Project</a></li>
