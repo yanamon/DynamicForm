@@ -258,15 +258,41 @@ class FormController extends Controller
         $php = $php.    'use Kunnu\Dropbox\DropboxFile; ';
         $php = $php.    'use Kunnu\Dropbox\DropboxApp; ';
         $php = $php.    'use Kunnu\Dropbox\Dropbox; ';
+        $php = $php.    '$app_key = "'.$request->app_key.'";  ';
+        $php = $php.    '$app_secret = "'.$request->app_secret.'"; ';
+        $php = $php.    '$app = new DropboxApp($app_key, $app_secret); ';
+        $php = $php.    '$dropbox = new Dropbox($app); ';
+        $php = $php.    '$authHelper = $dropbox->getAuthHelper(); ';
         $php = $php.    'session_start(); ';
-            
-        $php = $php.    'if(isset($_POST["input_value"])){ ';
-        $php = $php.        '$app_key = "'.$request->app_key.'"; ';
-        $php = $php.        '$app_secret = "'.$request->app_secret.'"; ';
-        $php = $php.        '$access_token = "'.$request->access_token.'"; ';
-        $php = $php.        '$project_name = "'.$request->project_name.'"; ';
-        $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
+
+        $php = $php.    'if(isset($_POST["access_token"])){  ';
+        $php = $php.    '    try{ ';
+        $php = $php.    '        $code = $_POST["access_token"]; ';
+        $php = $php.    '        $authToken = $authHelper->getAccessToken($code); ';
+        $php = $php.    '        $access_token =  $authToken->getToken(); ';
+        $php = $php.    '        $app = new DropboxApp($app_key , $app_secret, $access_token); ';
+        $php = $php.    '        $dropbox = new Dropbox($app);  ';
+        $php = $php.    '        $dropbox->getCurrentAccount(); ';
+        $php = $php.    '   } catch(Exception $e){ ';
+        $php = $php.    '       $_SESSION["login_error"] = "Login Fail ".$e->getMessage(); ';
+        $php = $php.    '       header("Location: ".$_SERVER["PHP_SELF"]);  ';
+        $php = $php.    '       exit; ';
+        $php = $php.    '   } ';
+        $php = $php.    '   $_SESSION["access_token"] = $access_token; ';
+        $php = $php.    '   header("Location: ".$_SERVER["PHP_SELF"]);  ';
+        $php = $php.    '   exit; ';
+        $php = $php.    '} ';
+
+        $php = $php.    'else if(!isset($_SESSION["access_token"])){ ';
+        $php = $php.    '   include "dropbox/login.php";  ';
+        $php = $php.    '} ';
+
+        $php = $php.    'else { ';
+        $php = $php.    '   $access_token = $_SESSION["access_token"]; ';
         
+    
+        $php = $php.    'if(isset($_POST["input_value"])){ ';
+        $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
         $php = $php.        '$values = $_POST["input_value"]; ';
         $php = $php.        '$labels = $_POST["input_label"]; ';
         $php = $php.        '$row = array(); ';
@@ -298,33 +324,15 @@ class FormController extends Controller
         $php = $php.        '$app = new DropboxApp($app_key, $app_secret, $access_token); ';
         $php = $php.        '$dropbox = new Dropbox($app); ';
 
-        $php = $php.        'try{';
-        $php = $php.        '    $project_folder = $dropbox->getMetadata("/".$project_name);';
-        $php = $php.        '}catch(Exception $e){';
-        $php = $php.        '    $project_folder = $dropbox->createFolder("/".$project_name);';
-        $php = $php.        '}';
-
-        $php = $php.        'try{';
-        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name);';
-        $php = $php.        '}catch(Exception $e){';
-        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name);';
-        $php = $php.        '}';
-
-        $php = $php.        'try{';
-        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/synchronized");';
-        $php = $php.        '    $folder = $dropbox->getMetadata("/".$project_name."/".$folder_name."/unsynchronized");';
-        $php = $php.        '}catch(Exception $e){';
-        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/synchronized");';
-        $php = $php.        '    $folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/unsynchronized");';
-        $php = $php.        '}';
-
-        $php = $php.        '$folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/data", true);  ';
+        $php = $php.        '$folder = $dropbox->createFolder("/".$folder_name, true);  ';
         $php = $php.        '$data_folder_name= $folder->getName();  ';
-        $php = $php.        '$path = "/".$project_name."/".$folder_name."/".$data_folder_name."/data.json"; ';
+        $php = $php.        '$folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name, true);  ';
+
+        $php = $php.        '$path = "/".$data_folder_name."/".$folder_name."/data.json"; ';
         $php = $php.        '$dropboxFile = new DropboxFile("tmp/data.json");  ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
-
-        $php = $php.        '$attachment_folder = $dropbox->createFolder("/".$project_name."/".$folder_name."/".$data_folder_name."/attachment", true); ';
+        $php = $php.        '$attachment_folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name."/attachment", true); ';
+        
         $php = $php.        '$k=0; ';
         $php = $php.        '$file_names = $_FILES["input_value"]["name"]; ';
         $php = $php.        '$file_keys = array_keys($file_names); ';
@@ -335,15 +343,37 @@ class FormController extends Controller
         $php = $php.        '   $tmp = explode(".", $file_name); $ext = end($tmp); ';
         $php = $php.        '   $target_file = "tmp/attachment/" .$labels[$file_keys[$k]].".".$ext; ';   
         $php = $php.        '   move_uploaded_file($file, $target_file); ';
-        $php = $php.        '   $path = "/".$project_name."/".$folder_name."/".$data_folder_name."/attachment/".$labels[$file_keys[$k]].".".$ext; ';
+        $php = $php.        '   $path = "/".$data_folder_name."/".$folder_name."/attachment/".$labels[$file_keys[$k]].".".$ext; ';
         $php = $php.        '   $dropboxFile = new DropboxFile($target_file); ';
         $php = $php.        '   $file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
         $php = $php.        '   $k++; ';
         $php = $php.        '} ';
 
-        $php = $php.        '$move_from = "/".$project_name."/".$folder_name."/".$data_folder_name; ';
-        $php = $php.        '$move_to = "/".$project_name."/".$folder_name."/unsynchronized/data"; ';
-        $php = $php.        '$move = $dropbox->move($move_from, $move_to, true); ';
+        $php = $php.        '$response = $dropbox->postToAPI("/sharing/share_folder",[ ';
+        $php = $php.        '    "path" => "/".$data_folder_name."/".$folder_name, ';
+        $php = $php.        '    "acl_update_policy" => "editors", ';
+        $php = $php.        '    "force_async" => false, ';
+        $php = $php.        '    "member_policy" => "anyone", ';
+        $php = $php.        '    "access_inheritance" => "inherit" ';
+        $php = $php.        ']); ';
+        $php = $php.        '$data = $response->getDecodedBody(); ';
+        $php = $php.        '$shared_folder_id = $data["shared_folder_id"]; ';
+        $php = $php.        '$member = json_decode(json_encode(array( ';
+        $php = $php.        '    ".tag" => "email", ';
+        $php = $php.        '    "email" => "gusyana124@gmail.com" ';
+        $php = $php.        ')), true); ';
+
+        $php = $php.        '$response = $dropbox->postToAPI("/sharing/add_folder_member", [ ';
+        $php = $php.        '    "shared_folder_id" => $shared_folder_id, ';
+        $php = $php.        '    "members" => array( ';
+        $php = $php.        '        json_decode(json_encode(array( ';
+        $php = $php.        '            "member"=> $member, ';
+        $php = $php.        '            "access_level" => "editor" ';
+        $php = $php.        '        )), true) ';
+        $php = $php.        '), ';
+        $php = $php.        '"quiet" => true, ';
+        $php = $php.        ']); ';
+        $php = $php.        '$data = $response->getDecodedBody(); ';
 
         $php = $php.        '$_SESSION["success"] = 1; ';
         $php = $php.        'header("Location: ".$_SERVER["PHP_SELF"]); ';
@@ -362,6 +392,7 @@ class FormController extends Controller
         $php = $php.'?> ' ;
         $php = $php.        '<script> alert("Input Data Sukses"); </script> ';
         $php = $php.'<?php ';
+        $php = $php.            '} ';
         $php = $php.        '} ';
         $php = $php.    '} ';
         $php = $php.'?> ';

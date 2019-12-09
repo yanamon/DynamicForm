@@ -1,6 +1,7 @@
 
 
 
+
 <?php
     require_once "../dropbox/autoload.php"; 
     use Kunnu\Dropbox\DropboxFile; 
@@ -13,7 +14,25 @@
         sleep($sleep_time);
         try{    
             $app = new DropboxApp($app_key, $app_secret, $access_token); 
-            $dropbox = new Dropbox($app);     
+            $dropbox = new Dropbox($app);  
+            $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
+            $mounts = $response->getDecodedBody();
+            foreach($mounts["entries"] as $mount) {
+                $response = $dropbox->postToAPI("/sharing/mount_folder", [
+                    "shared_folder_id" => $mount["shared_folder_id"]
+                ]);  
+                $mount_name = $mount["name"];
+                $path = "/".$mount_name;
+                $move_path = "/".$project_name."/".$mount_name."/unsynchronized/data";
+                $move = $dropbox->copy($path, $move_path, true);   
+
+                $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", [
+                    "shared_folder_id" => $mount["shared_folder_id"],
+                    "leave_a_copy" => false
+                ]);  
+
+            }
+
             foreach($syncs as $sync){
                 $path = "/".$project_name."/".$sync["folder"]."/unsynchronized";
                 $listData = $dropbox->listFolder($path);

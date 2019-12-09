@@ -562,7 +562,7 @@ class Dropbox
      * @link https://www.dropbox.com/developers/documentation/http/documentation#files-copy
      *
      */
-    public function copy($fromPath, $toPath)
+    public function copy($fromPath, $toPath, $autorename)
     {
         //From and To paths cannot be null
         if (is_null($fromPath) || is_null($toPath)) {
@@ -570,7 +570,7 @@ class Dropbox
         }
 
         //Response
-        $response = $this->postToAPI('/files/copy', ['from_path' => $fromPath, 'to_path' => $toPath]);
+        $response = $this->postToAPI('/files/copy', ['from_path' => $fromPath, 'to_path' => $toPath, "autorename" => $autorename]);
 
         //Make and Return the Model
         return $this->makeModelFromResponse($response);
