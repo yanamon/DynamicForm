@@ -1,7 +1,7 @@
 
 
 <?php 
-require_once "../dropbox/autoload.php"; 
+require_once "dropbox/autoload.php"; 
 use Kunnu\Dropbox\DropboxFile; 
 use Kunnu\Dropbox\DropboxApp; 
 use Kunnu\Dropbox\Dropbox; 

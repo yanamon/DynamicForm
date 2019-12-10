@@ -107,44 +107,26 @@ class FormController extends Controller
         $user_path = Auth::user()->id.'/';
         Storage::disk('public')->deleteDirectory($user_path);
         Storage::disk('public')->makeDirectory($user_path);
-        $project_path = $user_path.$project->project_name;
-        $share_path = $user_path.$project->project_name.'-share/'.$project->project_name.'-share';
+        $project_path = $user_path.$project->project_name.'-master';
+        $share_path = $user_path.$project->project_name;
         Storage::disk('public')->makeDirectory($project_path);
         Storage::disk('public')->makeDirectory($project_path."/attachment");
         Storage::disk('public')->makeDirectory($share_path);
         $storage_path1 = storage_path('app/dropbox');
-        $storage_path3 = storage_path('app/sync');
+        $storage_path3 = storage_path('app/sync/sync');
         $storage_path2 = storage_path('app/public/' . $project_path);
         $storage_path4 = storage_path('app/public/' . $share_path);
-        $storage_path5 = storage_path('app/public/' . $user_path.$project->project_name.'-share/');
+        $storage_path5 = storage_path('app/public/' . $user_path);
         File::copyDirectory($storage_path1 , $storage_path2);
-        File::copyDirectory($storage_path3 , $storage_path2);
         File::copyDirectory($storage_path1 , $storage_path4);
-        
-        
-        $prepend = '<?php ';
-        $prepend = $prepend.'$app_key="'.$project->dropbox_app_key.'"; ';
-        $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
-        $prepend = $prepend.'$access_token="'.$project->dropbox_access_token.'"; ';
-        $prepend = $prepend.'$project_name="'.$project->project_name.'"; ';
+          
         foreach($forms as $i => $form){
-            $this->export($form->id, $project_path, $share_path);
-            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"] = "'.$form->form_name.'";';
-            foreach($form->formInput as $j => $formInput){
-                $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
-            }
-        }  
-        $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
-        $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
-        $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');
-        $fileContents = file_get_contents($file);
-        file_put_contents($file, $prepend . $fileContents);  
-        File::copyDirectory($storage_path5 , $storage_path2);
-
+            $this->export($form->id, $share_path);
+        }
         $zip_file = $project->project_name.'.zip';
         $zip = new \ZipArchive();
-        $zip->open($zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-        $path = storage_path('app/public/'.$project_path);
+        $zip->open($storage_path2."/".$zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $path = storage_path('app/public/'.$share_path);
         $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
         foreach ($files as $name => $file)
         {
@@ -155,6 +137,44 @@ class FormController extends Controller
             }
         }
         $zip->close();
+
+        File::copy($storage_path3.'/sync_setter.php', $storage_path2.'/sync_setter.php');
+        File::copy($storage_path3.'/sync_worker.php', $storage_path2.'/sync_worker.php');
+        $prepend = '<?php ';
+        $prepend = $prepend.'$app_key="'.$project->dropbox_app_key.'"; ';
+        $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
+        $prepend = $prepend.'$access_token="'.$project->dropbox_access_token.'"; ';
+        $prepend = $prepend.'$project_name="'.$project->project_name.'"; ';
+        foreach($forms as $i => $form){
+            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"] = "'.$form->form_name.'";';
+            foreach($form->formInput as $j => $formInput){
+                $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
+            }
+        }  
+        $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
+        $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
+        $file = storage_path('app/public/'.$project_path.'/sync_setter.php');
+        $fileContents = file_get_contents($file);
+        file_put_contents($file, $prepend . $fileContents);  
+
+        $zip_file = $project->project_name.'-master.zip';
+        $zip = new \ZipArchive();
+        $zip->open($storage_path5."/".$zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+        $path = storage_path('app/public/'.$project_path);
+        $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path));
+        foreach ($files as $name => $file)
+        {
+            $filePath     = $file->getRealPath();
+            $relativePath = $project->project_name.'-master/'. substr($filePath, strlen($path));
+            if (!$file->isDir()) {
+                $zip->addFile($filePath, $relativePath);
+            }else {
+                if($relativePath !== false)
+                    $zip->addEmptyDir($relativePath);
+            }
+        }
+        $zip->close();
+
 
         $app = new DropboxApp($project->dropbox_app_key, $project->dropbox_app_secret, $project->dropbox_access_token);
         $dropbox = new Dropbox($app);
@@ -182,10 +202,10 @@ class FormController extends Controller
             }
         }
         
-        return response()->download($zip_file);
+        return response()->download($storage_path5."/".$zip_file);
     }
 
-    public function export($id, $project_path, $share_path)
+    public function export($id, $share_path)
     {
         $form = Form::with('formInput')->find($id);
         $project = Project::find($form->project_id);
@@ -203,7 +223,6 @@ class FormController extends Controller
 
         $htmls = $this->createHtml($request);
         $filename = $form->form_name.".php";
-        Storage::disk('public')->put($project_path."/".$filename, $htmls);
         Storage::disk('public')->put($share_path."/".$filename, $htmls);
     }
 
