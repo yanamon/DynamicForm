@@ -27,7 +27,7 @@ $(document).ready(function() {
                         </div>\
                         <div class=modal-body>\
                             <div class=table-responsive>\
-                                <table id=example class=table>\
+                                <table id=example class=\'table table-bordered\'>\
                                     <thead class=thead-dark>\
                                         <th></th>';
                                         $i = 0;

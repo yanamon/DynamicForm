@@ -262,6 +262,7 @@ class FormController extends Controller
         $head = $head.'<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>';
         $head = $head.'<script src="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/js/select2.min.js"></script>';
         $head = $head.'<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.0.11/dist/css/select2.min.css">';
+        $head = $head.'<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">';
         $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>';
         $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>';
         
@@ -315,8 +316,8 @@ class FormController extends Controller
         $php = $php.        '$values = $_POST["input_value"]; ';
         $php = $php.        '$labels = $_POST["input_label"]; ';
         $php = $php.        '$row = array(); ';
-        $php = $php.        'mkdir("tmp"); ';
-        $php = $php.        'mkdir("tmp/attachment"); ';
+        $php = $php.        'mkdir("dropbox/tmp"); ';
+        $php = $php.        'mkdir("dropbox/tmp/attachment"); ';
 
         $php = $php.        '$j=0;  ';
         $php = $php.        '$file_names = $_FILES["input_value"]["name"]; ';
@@ -337,7 +338,7 @@ class FormController extends Controller
         $php = $php.        '} ';
         
         $php = $php.        '$myJSON = json_encode($row); ';
-        $php = $php.        '$fp = fopen("tmp/data.json", "w"); ';
+        $php = $php.        '$fp = fopen("dropbox/tmp/data.json", "w"); ';
         $php = $php.        'fwrite($fp, $myJSON); ';
         $php = $php.        'fclose($fp); ';
         $php = $php.        '$app = new DropboxApp($app_key, $app_secret, $access_token); ';
@@ -348,7 +349,7 @@ class FormController extends Controller
         $php = $php.        '$folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name, true);  ';
 
         $php = $php.        '$path = "/".$data_folder_name."/".$folder_name."/data.json"; ';
-        $php = $php.        '$dropboxFile = new DropboxFile("tmp/data.json");  ';
+        $php = $php.        '$dropboxFile = new DropboxFile("dropbox/tmp/data.json");  ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
         $php = $php.        '$attachment_folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name."/attachment", true); ';
         
@@ -360,13 +361,15 @@ class FormController extends Controller
         $php = $php.        'foreach($files as $file){ ';
         $php = $php.        '   $file_name = basename($_FILES["input_value"]["name"][$file_keys[$k]]); ';
         $php = $php.        '   $tmp = explode(".", $file_name); $ext = end($tmp); ';
-        $php = $php.        '   $target_file = "tmp/attachment/" .$labels[$file_keys[$k]].".".$ext; ';   
+        $php = $php.        '   $target_file = "dropbox/tmp/attachment/" .$labels[$file_keys[$k]].".".$ext; ';   
         $php = $php.        '   move_uploaded_file($file, $target_file); ';
         $php = $php.        '   $path = "/".$data_folder_name."/".$folder_name."/attachment/".$labels[$file_keys[$k]].".".$ext; ';
         $php = $php.        '   $dropboxFile = new DropboxFile($target_file); ';
         $php = $php.        '   $file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
         $php = $php.        '   $k++; ';
+        $php = $php.        '   unlink($target_file); ';
         $php = $php.        '} ';
+        $php = $php.        'unlink("dropbox/tmp/data.json"); ';
 
         $php = $php.        '$response = $dropbox->postToAPI("/sharing/share_folder",[ ';
         $php = $php.        '    "path" => "/".$data_folder_name."/".$folder_name, ';
@@ -416,6 +419,10 @@ class FormController extends Controller
         $php = $php.    '} ';
         $php = $php.'?> ';
         $php = $php.'<script>$(".select2").select2({ width: "100%" });</script> ';
+        $php = $php.'<?php ';
+        $php = $php.'if (file_exists("dropbox/tmp/attachment")) rmdir("dropbox/tmp/attachment"); ';
+        $php = $php.'if (file_exists("dropbox/tmp")) rmdir("dropbox/tmp"); ';
+        $php = $php.'?> ';
         return $php;
     }
 
