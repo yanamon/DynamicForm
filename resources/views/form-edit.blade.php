@@ -244,7 +244,9 @@
         var card_attr_id = $(this).attr('id');  
         $('#card-id').val(card_id);            
         $('#card-key').val(card_key);
-        
+        $('#table-modal-'+card_id).remove();
+
+        var isTableModal = 0;
         var edit_input_type;
         var edit_input_key;
         var edit_input_label = $("#"+card_attr_id).find('label').filter(':visible:first').html();
@@ -255,6 +257,9 @@
             if(input.attr('type')!='hidden') {
                 edit_input_type=input.attr('type');
                 edit_options.push(input.val());
+                if(edit_input_type == 'tablemodal'){
+                    isTableModal = 1;
+                }
             }
             else if(first_hidden==true) {
                 edit_input_key = input.val();
@@ -268,6 +273,7 @@
             var option = $(this);
             dropdown_options.push(option.html());
         });
+        if(isTableModal) edit_input_type = 'tablemodal';
         
         if(card_required == 'Yes') $("#radio-Yes").prop("checked", true);
         else if (card_required == 'No') $("#radio-No").prop("checked", true);
@@ -288,7 +294,19 @@
                 $("#input_fields_wrap2").append('<div class="row"><div class="col-md-11 col-sm-10 col-9"><input type="text" value='+item+' name="option[]" placeholder="New Option" class="option2 form-control form-control-sm" id="usr"></div><a href="#" class="remove_field"><i class="fa fa-times fa-lg"></i></a></div>');
             }
         }
-        if(dropdown_options.length > 0) isOption(dropdown_options);
+        if(isTableModal) {
+            $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
+            $("#json_upload2").change(function(event) {
+                var reader = new FileReader();
+                reader.onload = onReaderLoad;
+                reader.readAsText(event.target.files[0]);
+            });
+            function onReaderLoad(event){
+                var obj = JSON.parse(event.target.result);
+                table_modal_json = obj;
+            }
+        }
+        else if(dropdown_options.length > 0) isOption(dropdown_options);
         else if(edit_options.length > 1) isOption(edit_options);
         $('#action-modal').modal('show');
     });   

@@ -43,10 +43,10 @@ $(document).ready(function() {
                                                 $.each(items, function(key2, item) {
                                                     if(i==0) {
                                                         id_name = key2;
-                                                        if(id_name == key2) table_html = table_html + '<td><center><input type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                        if(id_name == key2) table_html = table_html + '<td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
                                                     }
                                                     else {
-                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
                                                         else table_html = table_html + '<td>'+item+'</td>';
                                                     }
                                                     i++;
@@ -63,7 +63,20 @@ $(document).ready(function() {
                     </div>\
                 </div>\
             </div>\
-            <script>$(\'.table\').DataTable();</script>'
+            <script>\
+                $(\'.table\').DataTable();\
+                $(\'.tm-radio-'+y+'\').on(\'click\', function(event){\
+                    var tds =  new Array();\
+                    var class_name = this.className;\
+                    var row = $(this).parent().closest(\'tr\');\
+                    row.find(\'td\').each (function() {\
+                        var count = $(this).children().length;\
+                        if(count == 0) tds.push($(this).html());\
+                    });\
+                    var tds_string = tds.join(\', \');\
+                    $(\'#\'+class_name).val(tds_string);\
+                });\
+            </script>'
         return table_html;
     }
 
@@ -136,9 +149,10 @@ $(document).ready(function() {
         
         else if(input_is_option == 2) {
             var table_html = createTableModal(table_modal_json, card_id);
-            input_html2 = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+' class=form-control type='+input_type+' placeholder='+input_type+' required>';
+            var placeholder = "\'Click to Set This Input\'";
+            input_html2 = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
-            input_html = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+' class=form-control type='+input_type+' placeholder='+input_type+' required>';
+            input_html = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
             input_html = input_html + table_html
             table_modal_json = 0;
         }
@@ -149,8 +163,6 @@ $(document).ready(function() {
         deleteInput();
         keys[card_id] = input_key;
 
-
-        
         input_html=input_html + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
         input_html2=input_html2 + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
         
