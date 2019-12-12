@@ -18,18 +18,30 @@
             $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
             $mounts = $response->getDecodedBody();
             foreach($mounts["entries"] as $mount) {
-                $response = $dropbox->postToAPI("/sharing/mount_folder", [
-                    "shared_folder_id" => $mount["shared_folder_id"]
-                ]);  
+                if(isset($mount["path_lower"])) $path= $mount["path_lower"];
+                else {
+                    $response = $dropbox->postToAPI("/sharing/mount_folder", [
+                        "shared_folder_id" => $mount["shared_folder_id"]
+                    ]); 
+                    $mount_result = $response->getDecodedBody();
+                    $path = $mount_result["path_lower"];
+                }
                 $mount_name = $mount["name"];
-                $path = "/".$mount_name;
+                $mount_name = strtok($mount_name,' ');
                 $move_path = "/".$project_name."/".$mount_name."/unsynchronized/data";
-                $move = $dropbox->copy($path, $move_path, true);   
-
-                $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", [
-                    "shared_folder_id" => $mount["shared_folder_id"],
-                    "leave_a_copy" => false
-                ]);  
+                $move = $dropbox->copy($path, $move_path, true); 
+                if($mount["access_type"][".tag"] == "editor"){
+                    $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", [
+                        "shared_folder_id" => $mount["shared_folder_id"],
+                        "leave_a_copy" => false
+                    ]);  
+                }
+                else if($mount["access_type"][".tag"] == "owner"){  
+                    $response = $dropbox->postToAPI("/sharing/unshare_folder", [
+                        "shared_folder_id" => $mount["shared_folder_id"],
+                        "leave_a_copy" => false
+                    ]);  
+                }
 
             }
 
