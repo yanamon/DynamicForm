@@ -1,8 +1,3 @@
-akun dropbox verifikasi email
-
-
-
-
 
 
 logout dropbox buat kaya halaman web dropbox, kiri atas ke localhost/Home kanan atas name + logout
