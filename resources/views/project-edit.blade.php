@@ -5,7 +5,7 @@
 <div class="container">
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-2"></div>
-        <div id="card" class="col-md-8 shadow-sm">
+        <div id="card" class="col-md-8 shadow-sm" style="padding-top:10px; padding-bottom:10px;">
             <div>
                 @if ($errors->any())
                 <div class="card-title">
@@ -53,7 +53,7 @@
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
-                            <button type="submit" class="btn btn-success">Submit</button>
+                            <button type="submit" class="btn btn-success btn-block">Submit</button>
                         </div>
                     </div>
                 </form>

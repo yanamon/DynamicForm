@@ -93,16 +93,36 @@ class FormController extends Controller
 
     }
 
+    public function createMysql($project_name, $forms){
+        $sql = "";
+        
+        $sql = $sql."create DATABASE `".$project_name."`; ".PHP_EOL;
+        $sql = $sql."USE `".$project_name."`; ".PHP_EOL;
+
+        foreach($forms as $i => $form){
+            $sql = $sql."DROP TABLE IF EXISTS `".$form->form_name."`; ".PHP_EOL;
+            $sql = $sql."create TABLE `".$form->form_name."` ( ".PHP_EOL;
+            $sql = $sql."`id` int(12) NOT NULL AUTO_INCREMENT, ".PHP_EOL;
+            foreach($form->formInput as $j => $formInput){
+                $sql = $sql."`".$formInput->input_key."` varchar(255) DEFAULT NULL, ".PHP_EOL;
+            }
+            $sql = $sql."PRIMARY KEY (`id`) ".PHP_EOL;
+            $sql = $sql.") ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1; ".PHP_EOL;
+        }
+  
+        return $sql;
+    }
+
     public function exportProject($id, Request $request)
     {
         if(empty($request->checked_form)) return redirect('project/'.$id);
-
         foreach($request->checked_form as $i => $checked_form_id){
             if($i==0) $forms = Form::where('id', $checked_form_id);
             else $forms->orWhere('id', $checked_form_id);
         }  
         $forms = $forms->with('formInput')->get();
         $project = Project::find($id);
+        
 
         $user_path = Auth::user()->id.'/';
         Storage::disk('public')->deleteDirectory($user_path);
@@ -123,6 +143,12 @@ class FormController extends Controller
         foreach($forms as $i => $form){
             $this->export($form->id, $share_path);
         }
+        if(!empty($request->export_sql)){
+            $sql = $this->createMysql($project->project_name, $forms);
+            $sql_file_name = $project->project_name.".sql";
+            Storage::disk('public')->put($project_path."/".$sql_file_name, $sql);
+        }
+
         $zip_file = $project->project_name.'.zip';
         $zip = new \ZipArchive();
         $zip->open($storage_path2."/".$zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
@@ -468,6 +494,7 @@ class FormController extends Controller
         $css = $css.'.card-input { padding-top:15px; padding-bottom:5px;padding-right: 30px;padding-left: 30px;}';
         $css = $css.'.select2-selection__arrow {margin-top:3px!important;}';
         $css = $css.'.select2-selection.select2-selection--single {height: 36px!important; padding:3px !important;}';
+        $css = $css.'input[type=radio],input[type=checkbox] {margin-right:5px;}';
         $css = $css.'</style>';
         return $css;
     }

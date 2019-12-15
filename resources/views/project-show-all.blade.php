@@ -7,6 +7,7 @@
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-1"></div>
         <div class="col-md-10">
+            @if($projects->count() == 0) <center>You have no Project</center> @endif
             @foreach($projects as $i => $project)	
                 <a href="/project/{{$project->id}}">									
                     <div class="card">

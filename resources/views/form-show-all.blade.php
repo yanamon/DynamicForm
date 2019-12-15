@@ -44,7 +44,26 @@
                             @endforeach
                         </tbody>
                     </table>
-                </div>      
+                </div>  
+                
+                
+                <!-- Export Modal -->
+                <div class="modal" id="export-modal">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Export Project</h4>
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            </div>     
+                            <div class="modal-body">
+                                <input style="margin-left:12px;" name="export_sql" type="checkbox" value="yes"> include mysql database structure
+                            </div>   
+                            <div class="modal-footer">
+                                <button id="btn-export" type="button" class="btn btn-danger" onClick="document.getElementById('check-export-form').submit();">Export</button>
+                            </div>  
+                        </div>
+                    </div>
+                </div> 
             </form>
         </div>
     </div>
@@ -54,23 +73,6 @@
 </a>
 <button style="position:fixed; right:3%; bottom:60px;"  data-toggle="modal" data-target="#export-modal" title="Export Project" class="btn btn-info btn-circle" type="button"><i class="fa fa-arrow-right fa-lg"></i></button>
 
-<!-- Export Modal -->
-<div class="modal" id="export-modal">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Export Project</h4>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>     
-            <div class="modal-body">
-                Export this project?
-            </div>   
-            <div class="modal-footer">
-                <button id="btn-export" type="button" class="btn btn-danger" onClick="document.getElementById('check-export-form').submit();">Export</button>
-            </div>  
-        </div>
-    </div>
-</div> 
 
 
 <div id="modal-hapus" class="modal fade" role="dialog">

@@ -40,7 +40,7 @@
 <div class="container">
     <div class="row" style="margin-top: 20px;">
         <div class="col-md-2"></div>
-        <div id="card" class="col-md-8 shadow-sm">
+        <div id="card" class="col-md-8 shadow-sm"  style="padding-bottom:18px;">
             <div>
                 @if ($errors->any())
                 <div class="card-title">

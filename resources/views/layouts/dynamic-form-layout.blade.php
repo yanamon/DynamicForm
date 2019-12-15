@@ -48,6 +48,7 @@
 
         <link rel="stylesheet" href="{{asset('/css/style.css')}}">
         <style>
+            input[type=radio],input[type=checkbox] {margin-right:5px;}
             .select2-selection__arrow {margin-top:3px!important;}
             .select2-selection.select2-selection--single {height: 36px!important; padding:3px !important;}
         </style>
