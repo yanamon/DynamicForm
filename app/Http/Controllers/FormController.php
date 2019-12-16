@@ -45,7 +45,7 @@ class FormController extends Controller
             'project_id' => 'required',
             'input_key' => 'required',
             'html' => 'required',
-            'form_name' => 'required'
+            'form_name' => 'required|alpha_dash'
         ]);
         $form = new Form();
         $form->title = $request->title;

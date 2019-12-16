@@ -43,7 +43,10 @@
                     <div class="alert alert-danger">
                         <ul>
                             @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
+                                @if($error == "The html field is required.") <li>Form must have at least 1 input field.</li>
+                                @elseif($error == "The input key field is required.")
+                                @else <li>{{ $error }}</li>
+                                @endif
                             @endforeach
                         </ul>
                     </div>
@@ -67,7 +70,7 @@
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label for="usr">Form Name:</label>
-                                        <input id="formName" class="form-control" type="text" name="form_name" placeholder="Example: Product"> 
+                                        <input id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
                                     </div>
                                 </div>
                                 <div class="modal-footer">

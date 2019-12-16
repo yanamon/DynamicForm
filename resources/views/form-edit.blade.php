@@ -73,7 +73,7 @@
                                 <div class="modal-body">
                                     <div class="form-group">
                                         <label for="usr">Form Name:</label>
-                                        <input value="{{$form->form_name}}" id="formName" class="form-control" type="text" name="form_name" placeholder="Example: Product"> 
+                                        <input value="{{$form->form_name}}" id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
                                     </div>
                                 </div>
                                 <div class="modal-footer">

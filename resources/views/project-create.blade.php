@@ -28,26 +28,26 @@
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
                             <label>Project Name</label>
-                            <input class=form-control type=text name=project_name>
+                            <input class=form-control type=text name=project_name placeholder="May only contain letters, numbers, dashes, underscores">
                         </div>
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
                             <label>Dropbox App Key</label>
-                            <input class=form-control type=text name=dropbox_app_key>
+                            <input class=form-control type=text name=dropbox_app_key placeholder="Example: pguozkqfb6vn1w9">
                         </div>
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                     
                         <div class=form-group>
                             <label>Dropbox App Secret</label>
-                            <input class=form-control type=text name=dropbox_app_secret>
+                            <input class=form-control type=text name=dropbox_app_secret placeholder="Example: dw5h3xegfdm326a">
                         </div>
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
                             <label>Dropbox Access Token</label>
-                            <input class=form-control type=text name=dropbox_access_token>
+                            <input class=form-control type=text name=dropbox_access_token placeholder="Example: apa_LdNqwrsAAAAAAAABfUSb9a7JZ5YuUMOK9FWi3oQp1AnPKyl8bARec7pjPns2">
                         </div>
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
