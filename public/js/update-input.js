@@ -58,7 +58,8 @@ $(document).ready(function() {
                             </div>\
                         </div>\
                         <div class=modal-footer>\
-                            <button data-dismiss=modal id=btn-export type=button class=\'btn btn-danger\'>Submit</button>\
+                            <button id=btn-delete-selected-'+y+' type=button class=\'btn btn-danger\'>Delete Selected</button>\
+                            <button data-dismiss=modal type=button class=\'btn btn-primary\'>Submit Selected</button>\
                         </div>\
                     </div>\
                 </div>\
@@ -75,6 +76,11 @@ $(document).ready(function() {
                     });\
                     var tds_string = tds.join(\', \');\
                     $(\'#\'+class_name).val(tds_string);\
+                });\
+                $(\'.readonly\').on(\'keydown paste\', function(e){e.preventDefault();});\
+                $(\'#btn-delete-selected-'+y+'\').click(function() {\
+                    $(\'.tm-radio-'+y+'\').prop(\'checked\', false);\
+                    $(\'#tm-radio-'+y+'\').val(\'\');\
                 });\
             </script>'
         return table_html;
@@ -109,28 +115,37 @@ $(document).ready(function() {
         input_html2 = input_html;
         if(input_is_option == 1) {
             if(input_type=="dropdown"){
-                input_html = input_html + '<select class=select2 name=input_value['+card_id+']>';
+                input_html2 = input_html2 + '<select required class=form-control name=input_value['+card_id+']><option value= >-- Select '+input_label+' --</option>';
+                input_html = input_html + '<select class=form-control name=input_value['+card_id+']>';
                 var i = 0;
                 $('.option2').each(function() {
                     var option =  $(this).val();
                     if(option!=""){
+                        input_html2 = input_html2 + '<option>'+option+'</option>';
                         input_html = input_html + '<option>'+option+'</option>';
                         i++;
                     }
                 });
                 if(i<2){alert("minimum number of option is 2");return;}
-                input_html2 = input_html;
+                input_html2 = input_html2 + '</select>';
                 input_html = input_html + '</select>';
             }
             else if(input_type=="radio"||input_type=="checkbox"){
                 var i = 0;
-                input_html = input_html+'<div class=check>';
-                input_html2 = input_html2+'<div class=check>';
+                
+                if(input_type=="checkbox") {
+                    input_html = input_html+'<div class=check>';
+                    input_html2 = input_html2+'<div class=\'check checkbox-validation\'>';
+                }
+                else {
+                    input_html = input_html+'<div class=check>';
+                    input_html2 = input_html2+'<div class=check>';
+                }
                 $('.option2').each(function() {
                     var option =  $(this).val();
                     if(option!=""){
                         if(input_type=="checkbox") {
-                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+card_id+']['+i+'] value='+option+'>'+option+'</label></div>';
+                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+card_id+']['+i+'] value='+option+'>'+option+'</label></div>';
                             input_html = input_html + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+card_id+']['+i+'] value='+option+'>'+option+'</label></div>';
                         }
                         else {
@@ -150,9 +165,9 @@ $(document).ready(function() {
         else if(input_is_option == 2) {
             var table_html = createTableModal(table_modal_json, card_id);
             var placeholder = "\'Click to Set This Input\'";
-            input_html2 = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
+            input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
-            input_html = input_html + '<input readonly data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=form-control type='+input_type+' placeholder='+placeholder+' required>';
+            input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html = input_html + table_html
             table_modal_json = 0;
         }
@@ -187,70 +202,7 @@ $(document).ready(function() {
             $('#card-input-'+card_id).attr('data-required', input_required);
         }
 
-        $('#table-modal-'+card_id).remove();
-
-        // $(".card-input").hover(function() {
-        //     $(this).addClass('card-input-shadow').css('cursor', 'pointer'); 
-        // }, function() {
-        //     $(this).removeClass('card-input-shadow');
-        // });   
-
-        // $(".card-input").click(function() {
-        //     var card_id = $(this).attr('data-id'); 
-        //     var card_key = $(this).attr('data-key'); 
-        //     var card_required = $(this).attr('data-required'); 
-        //     var card_attr_id = $(this).attr('id');  
-        //     $('#card-id').val(card_id);            
-        //     $('#card-key').val(card_key);
-            
-        //     var edit_input_type;
-        //     var edit_input_key;
-        //     var edit_input_label = $("#"+card_attr_id).find('label').filter(':visible:first').html();
-        //     var edit_options = [];
-        //     var first_hidden = true;
-        //     $("#"+card_attr_id+" :input").each(function(){
-        //         var input = $(this);
-        //         if(input.attr('type')!='hidden') {
-        //             edit_input_type=input.attr('type');
-        //             edit_options.push(input.val());
-        //         }
-        //         else if(first_hidden==true) {
-        //             edit_input_key = input.val();
-        //             first_hidden = false;
-        //         }
-        //     });
-
-        //     var dropdown_options = [];
-        //     $("#"+card_attr_id).find('select > option').each(function(){
-        //         edit_input_type = 'dropdown'
-        //         var option = $(this);
-        //         dropdown_options.push(option.html());
-        //     });
-            
-            
-        //     if(card_required == 'Yes') $("#radio-Yes").prop("checked", true);
-        //     else if (card_required == 'No') $("#radio-No").prop("checked", true);
-        //     $('#edit-label').val(edit_input_label);
-        //     $('#edit-key').val(edit_input_key);
-        //     $('#input-types2').val(edit_input_type);
-        //     $('#input-types2 option[value='+edit_input_type+']').prop('selected', true);
-
-        //     $('#input_fields_wrap2').empty();
-        //     $('#btn-option-add2').empty();
-        //     function isOption(options){
-        //         $('#input_fields_wrap2').append('<div><input type="text" name="option[]" value='+options[0]+' placeholder="New Option" class="option2 form-control form-control-sm" id="usr"><input type="text" name="option[]" value='+options[1]+' placeholder="New Option" class="option2 form-control form-control-sm" id="usr"></div>');
-        //         $('#btn-option-add2').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
-        //         x = options.length-1;
-        //         options.forEach(myFunction);
-        //         function myFunction(item, index) {
-        //             if(index>1)
-        //             $("#input_fields_wrap2").append('<div class="row"><div class="col-md-11 col-sm-10 col-9"><input type="text" value='+item+' name="option[]" placeholder="New Option" class="option2 form-control form-control-sm" id="usr"></div><a href="#" class="remove_field"><i class="fa fa-times fa-lg"></i></a></div>');
-        //         }
-        //     }
-        //     if(dropdown_options.length > 0) isOption(dropdown_options);
-        //     else if(edit_options.length > 1) isOption(edit_options);
-        //     $('#action-modal').modal('show');
-        // });   
+        $('#table-modal-'+card_id).remove(); 
         $('.select2').select2({ width: '100%' });
         $('#action-modal').modal('toggle');
     });    

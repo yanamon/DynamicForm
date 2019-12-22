@@ -294,7 +294,7 @@ class FormController extends Controller
         foreach($request->formInput as $formInput){
             $htmls = $htmls.$formInput->html;
         }
-        $htmls= $htmls.'<div class="form-group card-title" style="margin-bottom:30px;"><button type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
+        $htmls= $htmls.'<div class="form-group card-title" style="margin-bottom:30px;"><button id="btn-submit-form" type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
         $htmls = $htmls.'</form>';
         $htmls = $htmls.'</div></div></div></div>';
         $htmls = $htmls.'</body>';
@@ -484,6 +484,34 @@ class FormController extends Controller
         $php = $php.'if (file_exists("dropbox/tmp/attachment")) rmdir("dropbox/tmp/attachment"); ';
         $php = $php.'if (file_exists("dropbox/tmp")) rmdir("dropbox/tmp"); ';
         $php = $php.'?> ';
+
+        $php = $php.'<script> ';
+        $php = $php.'    $("#btn-submit-form").click(function() { ';
+        $php = $php.'        $(".checkbox-validation").each(function(e){ ';
+        $php = $php.'            var flag = false; ';
+        $php = $php.'            $(this).find(":input").each(function(e){ ';
+        $php = $php.'                if ($(this).prop("checked") == true){ ';
+        $php = $php.'                    flag=true; ';
+        $php = $php.'                } ';
+        $php = $php.'            }); ';
+        $php = $php.'            if(!flag){ ';
+        $php = $php.'                $(this).find(":input").each(function(e){ ';
+        $php = $php.'                     var checkbox = $(this); ';
+        $php = $php.'                    var element = checkbox[0]; ';
+        $php = $php.'                    element.setCustomValidity("At least one checkbox must be selected."); ';
+        $php = $php.'                }); ';
+        $php = $php.'             } ';
+        $php = $php.'        }); ';
+        $php = $php.'    }); ';
+        $php = $php.'    $("input[type=checkbox]").on("change", function() { ';
+        $php = $php.'        $(this).closest(".checkbox-validation").find(":input").each(function(e){ ';
+        $php = $php.'            var checkbox = $(this); ';
+        $php = $php.'            var element = checkbox[0]; ';
+        $php = $php.'            element.setCustomValidity(""); ';
+        $php = $php.'        }); ';
+        $php = $php.'    }); ';
+        $php = $php.'</script> ';
+
         return $php;
     }
 
@@ -495,6 +523,7 @@ class FormController extends Controller
         $css = $css.'.select2-selection__arrow {margin-top:3px!important;}';
         $css = $css.'.select2-selection.select2-selection--single {height: 36px!important; padding:3px !important;}';
         $css = $css.'input[type=radio],input[type=checkbox] {margin-right:5px;}';
+        $css = $css.'.check{border: 1px solid rgb(206, 212, 218);padding: 10px 0px;}';
         $css = $css.'</style>';
         return $css;
     }

@@ -12,5 +12,4 @@ export .sql (checkbox pas export project) varchar semua ✓
 
 
 validasi required input hasil generate form
-validasi dropbox app, key, token & petik di new input
 <!-- show data di dropbox ?? -->
