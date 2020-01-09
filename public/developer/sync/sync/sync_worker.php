@@ -1,18 +1,17 @@
 
 
 
-
 <?php
-    require_once "dropbox/autoload.php"; 
+    require_once "../dropbox/autoload.php"; 
     use Kunnu\Dropbox\DropboxFile; 
     use Kunnu\Dropbox\DropboxApp; 
     use Kunnu\Dropbox\Dropbox; 
 
-    set_time_limit(0);
-    $sleep_time = 2;
-    while(true){
-        sleep($sleep_time);
-        try{    
+    // set_time_limit(0);
+    // $sleep_time = 2;
+    // while(true){
+    //     sleep($sleep_time);
+        // try{    
             $app = new DropboxApp($app_key, $app_secret, $access_token); 
             $dropbox = new Dropbox($app);  
             $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
@@ -56,7 +55,7 @@
                     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                     $first_folder_name = $listData->getItems()->first()->getName();
-                    $file_download = $dropbox->download($path."/".$first_folder_name."/data.json");
+                    $file_download = $dropbox->download($path."/".$first_folder_name."/insert.json");
                     $file_content = json_decode($file_download->getContents(),true);
 
 
@@ -93,37 +92,37 @@
                         $last = array_pop($tmp);
                         $attachment_attr = array(implode('.', $tmp), $last);
                         $file_content[$attachment_attr[0]] = $attachment_folder."/".$attachment_folder."_".$k.".".$ext;
-                        if (($key = array_search($attachment_attr[0], $sync['attribute'])) !== false) unset($sync['attribute'][$key]);
-                        array_push($sync['attribute'],$attachment_attr[0]);
+                        if (($key = array_search($attachment_attr[0], $sync['folder_attr'])) !== false) {
+                            unset($sync['folder_attr'][$key]);
+                            array_push($sync['folder_attr'],$attachment_attr[0]);
+                        }
                         $k++;
                     }
 
                     
                     $j = 0;
-                    foreach($sync['attribute'] as $i => $attr){
+                    foreach($sync['table_attr'] as $i => $attr){
                         $attributes = $attributes.$attr;
-                        if($j < count($sync['attribute'])-1) $attributes = $attributes.",";
-                        $j++;
-                    }
-                    $j = 0;
-                    foreach($file_content as $i => $data){
-                        $data = str_replace('"', '\"', $data);
+                        if($j < count($sync['table_attr'])-1) $attributes = $attributes.",";
+
+                        $data = str_replace('"', '\"', $file_content[$sync['folder_attr'][$i]]);
                         $values = $values.'"'.$data.'"';
-                        if($j < count($file_content)-1) $values = $values.", ";
+                        if($j < count($sync['table_attr'])-1) $values = $values.", ";
                         $j++;
                     }
+                    
                     $query = "INSERT INTO ".$sync["table"]."(".$attributes.") VALUES(".$values.")";
                     $sql = $conn->prepare($query);
                     $sql->execute();
     
-                    $move_path = "/".$project_name."/".$sync["folder"]."/synchronized";
-                    $move = $dropbox->move($path."/".$first_folder_name, $move_path."/".$first_folder_name, true);
+                    // $move_path = "/".$project_name."/".$sync["folder"]."/synchronized";
+                    // $move = $dropbox->move($path."/".$first_folder_name, $move_path."/".$first_folder_name, true);
 
                     echo $query."\n";
                 }
             }
-        }catch(Exception $e){   
-            echo("Connection failed: " . $e->getMessage()."\n");
-        }
-    }
+    //     }catch(Exception $e){   
+    //         echo("Connection failed: " . $e->getMessage()."\n");
+    //     }
+    // }
 ?>

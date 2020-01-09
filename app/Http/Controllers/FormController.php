@@ -133,7 +133,7 @@ class FormController extends Controller
         Storage::disk('public')->makeDirectory($project_path."/attachment");
         Storage::disk('public')->makeDirectory($share_path);
         $storage_path1 = storage_path('app/dropbox');
-        $storage_path3 = storage_path('app/sync/sync');
+        $storage_path3 = storage_path('app/sync/');
         $storage_path2 = storage_path('app/public/' . $project_path);
         $storage_path4 = storage_path('app/public/' . $share_path);
         $storage_path5 = storage_path('app/public/' . $user_path);
@@ -141,7 +141,7 @@ class FormController extends Controller
         File::copyDirectory($storage_path1 , $storage_path4);
           
         foreach($forms as $i => $form){
-            $this->export($form->id, $share_path);
+            $this->export($form->id, $share_path, $project_path);
         }
         if(!empty($request->export_sql)){
             $sql = $this->createMysql($project->project_name, $forms);
@@ -164,8 +164,7 @@ class FormController extends Controller
         }
         $zip->close();
 
-        File::copy($storage_path3.'/sync_setter.php', $storage_path2.'/sync_setter.php');
-        File::copy($storage_path3.'/sync_worker.php', $storage_path2.'/sync_worker.php');
+        File::copyDirectory($storage_path3, $storage_path2);
         $prepend = '<?php ';
         $prepend = $prepend.'$app_key="'.$project->dropbox_app_key.'"; ';
         $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
@@ -179,7 +178,7 @@ class FormController extends Controller
         }  
         $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
         $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
-        $file = storage_path('app/public/'.$project_path.'/sync_setter.php');
+        $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');
         $fileContents = file_get_contents($file);
         file_put_contents($file, $prepend . $fileContents);  
 
@@ -231,7 +230,7 @@ class FormController extends Controller
         return response()->download($storage_path5."/".$zip_file);
     }
 
-    public function export($id, $share_path)
+    public function export($id, $share_path, $project_path)
     {
         $form = Form::with('formInput')->find($id);
         $project = Project::find($form->project_id);
@@ -250,6 +249,7 @@ class FormController extends Controller
         $htmls = $this->createHtml($request);
         $filename = $form->form_name.".php";
         Storage::disk('public')->put($share_path."/".$filename, $htmls);
+        Storage::disk('public')->put($project_path."/".$filename, $htmls);
     }
 
     public function createHtml($request){
@@ -321,7 +321,7 @@ class FormController extends Controller
     }
 
     public function createPhpSubmit($request){
-        $php = '';
+        $php = "\n\n\n";
         $php = $php.'<?php ';
         $php = $php.    'require_once "dropbox/autoload.php"; ';
         $php = $php.    'use Kunnu\Dropbox\DropboxFile; ';
@@ -390,6 +390,47 @@ class FormController extends Controller
         $php = $php.        '}  ';
         $php = $php.        '$keys = array_keys($values); ';
 
+          
+        $php = $php.'if(isset($server)){ ';
+        $php = $php.'    $conn = new PDO("mysql:host=$server;dbname=$db", $user, $pass); ';
+        $php = $php.'    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); ';
+        $php = $php.'    $direct_attributes = ""; ';
+        $php = $php.'    $direct_values = ""; ';
+        $php = $php.'    $excepted_values = array(); ';
+        $php = $php.'    foreach($direct_to_db_folder as $j => $attr){ ';
+        $php = $php.'        $direct_attributes = $direct_attributes.$direct_to_db_table[$j]; ';
+        $php = $php.'        $value_index = array_search($attr, $labels); ';
+        $php = $php.'        $data = str_replace(\'"\', \'\\"\', $values[$value_index]); ';
+        $php = $php.'        $direct_values = $direct_values.\'"\'.$data.\'"\';  ';
+        
+                
+        $php = $php.'        array_push($excepted_values,$values[$value_index]); ';
+        $php = $php.'        if($j < count($direct_to_db_folder)-1) { ';
+        $php = $php.'            $direct_attributes = $direct_attributes.","; ';
+        $php = $php.'            $direct_values = $direct_values.","; ';
+        $php = $php.'        } ';
+        $php = $php.'    } ';
+        $php = $php.'    $query = "INSERT INTO ".$table_name."(".$direct_attributes.") VALUES(".$direct_values.")"; ';
+        $php = $php.'    $sql = $conn->prepare($query); ';
+        $php = $php.'    $sql->execute(); ';
+        $php = $php.'    $json_name = "update.json"; ';
+        $php = $php.     '$i = 0; ';
+        $php = $php.     'foreach($values as $value){ ';   
+        $php = $php.        '$is_value = true; '; 
+        $php = $php.        'foreach($excepted_values as $excepted_value){ ';  
+        $php = $php.            'if($value == $excepted_value) $is_value = false; ';    
+        $php = $php.        '} ';
+        $php = $php.        'if($is_value){ ';
+        $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
+        $php = $php.            'else $attr = array($labels[$keys[$i]] => $value); ';
+        $php = $php.            '$row = $row + $attr; ';
+        $php = $php.        '} ';
+        $php = $php.         '$i++; ';
+        $php = $php.     '} ';
+        $php = $php.'} ';
+
+        $php = $php.'else{ ';
+        $php = $php.'    $json_name = "insert.json"; ';
         $php = $php.        '$i = 0; ';
         $php = $php.        'foreach($values as $value){ ';      
         $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
@@ -397,9 +438,10 @@ class FormController extends Controller
         $php = $php.            '$row = $row + $attr; ';
         $php = $php.            '$i++; ';
         $php = $php.        '} ';
-        
+        $php = $php.'} ';
+      
         $php = $php.        '$myJSON = json_encode($row); ';
-        $php = $php.        '$fp = fopen("dropbox/tmp/data.json", "w"); ';
+        $php = $php.        '$fp = fopen("dropbox/tmp/".$json_name, "w"); ';
         $php = $php.        'fwrite($fp, $myJSON); ';
         $php = $php.        'fclose($fp); ';
         $php = $php.        '$app = new DropboxApp($app_key, $app_secret, $access_token); ';
@@ -409,8 +451,8 @@ class FormController extends Controller
         $php = $php.        '$data_folder_name= $folder->getName();  ';
         $php = $php.        '$folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name, true);  ';
 
-        $php = $php.        '$path = "/".$data_folder_name."/".$folder_name."/data.json"; ';
-        $php = $php.        '$dropboxFile = new DropboxFile("dropbox/tmp/data.json");  ';
+        $php = $php.        '$path = "/".$data_folder_name."/".$folder_name."/".$json_name; ';
+        $php = $php.        '$dropboxFile = new DropboxFile("dropbox/tmp/".$json_name);  ';
         $php = $php.        '$file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
         $php = $php.        '$attachment_folder = $dropbox->createFolder("/".$data_folder_name."/".$folder_name."/attachment", true); ';
         
@@ -430,7 +472,7 @@ class FormController extends Controller
         $php = $php.        '   $k++; ';
         $php = $php.        '   unlink($target_file); ';
         $php = $php.        '} ';
-        $php = $php.        'unlink("dropbox/tmp/data.json"); ';
+        $php = $php.        'unlink("dropbox/tmp/".$json_name); ';
 
         $php = $php.        '$response = $dropbox->postToAPI("/sharing/share_folder",[ ';
         $php = $php.        '    "path" => "/".$data_folder_name."/".$folder_name, ';

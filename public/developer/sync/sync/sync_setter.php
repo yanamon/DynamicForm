@@ -1,7 +1,8 @@
 
 
+
 <?php 
-require_once "dropbox/autoload.php"; 
+require_once "../dropbox/autoload.php"; 
 use Kunnu\Dropbox\DropboxFile; 
 use Kunnu\Dropbox\DropboxApp; 
 use Kunnu\Dropbox\Dropbox; 
@@ -11,6 +12,7 @@ if(isset($_POST["folder"])){
     $folders = $_POST["folder"]; 
     $tables = $_POST["table"]; 
     $attributes = $_POST["attribute"]; 
+    if(isset($_POST["direct_to_db"])) $direct_to_dbs = $_POST["direct_to_db"]; 
     $app_key = $_POST["dropbox_app_key"]; 
     $app_secret = $_POST["dropbox_app_secret"]; 
     $access_token = $_POST["dropbox_access_token"];  
@@ -19,6 +21,7 @@ if(isset($_POST["folder"])){
     $user = $_POST["username"]; 
     $pass = $_POST["password"]; 
     $db = $_POST["database_name"]; 
+
 
     $prepend = '<?php ';
     $prepend = $prepend.'$app_key="'.$app_key.'"; ';
@@ -33,8 +36,39 @@ if(isset($_POST["folder"])){
     foreach($folders as $i => $folder){
         $prepend = $prepend.'$syncs['.$i.']["folder"]="'.$folders[$i].'"; ';
         $prepend = $prepend.'$syncs['.$i.']["table"]="'.$tables[$i].'"; ';
+
+        $isPrepend2 = false;
+        $prepend2 = '<?php ';
+        $prepend2 = $prepend2.'$server="'.$server.'"; ';
+        $prepend2 = $prepend2.'$user="'.$user.'"; ';
+        $prepend2 = $prepend2.'$pass="'.$pass.'"; ';
+        $prepend2 = $prepend2.'$db="'.$db.'"; ';
+        $prepend2 = $prepend2.'$table_name="'.$tables[$i].'"; ';
+
+        foreach($attributes[$tables[$i]] as $j => $attribute){
+            $prepend = $prepend.'$syncs['.$i.']["table_attr"]['.$j.']="'.$attribute.'"; ';
+        }
         foreach($attributes[$folders[$i]] as $j => $attribute){
-            $prepend = $prepend.'$syncs['.$i.']["attribute"]['.$j.']="'.$attribute.'"; ';
+            $prepend = $prepend.'$syncs['.$i.']["folder_attr"]['.$j.']="'.$attribute.'"; ';
+        }
+        foreach($attributes[$folders[$i]] as $j => $attribute){
+            if(!isset($direct_to_dbs[$folders[$i]][$j])) $direct_to_dbs[$folders[$i]][$j] = "no";
+            else{
+                $prepend2 = $prepend2.'$direct_to_db_folder['.$j.'] = "'.$attribute.'"; ';
+                $prepend2 = $prepend2.'$direct_to_db_table['.$j.'] = "'.$attributes[$tables[$i]][$j].'"; ';
+                $isPrepend2 = true;
+            }
+            $prepend = $prepend.'$syncs['.$i.']["direct_to_db"]["'.$attribute.'"]="'.$direct_to_dbs[$folders[$i]][$j].'"; ';
+        }
+        if($isPrepend2){
+            $prepend2 = $prepend2.' ?> ';
+            $prepend2 = $prepend2."\n";
+            $file = '../'.$folder.'.php';
+            $contents = file_get_contents($file);
+            $new_contents = preg_replace('/^.+\n/', '', $contents);
+            file_put_contents($file,$new_contents);
+            $fileContents = file_get_contents($file);
+            file_put_contents($file, $prepend2 . $fileContents);
         }
     }
     $prepend = $prepend.' ?> ';
@@ -106,7 +140,7 @@ else{
         <div class="container" style="padding-bottom:200px;">
             <div class="row">
                 <div class="col-md-12" style="margin-top:20px;margin-bottom:20px">
-                <center><h3>Synchronize Data</h3></center>
+                <center><h3>Synchronize to Database</h3></center>
                 </div>
             </div>
             <div class="row" style="margin-top:0px;">
@@ -146,19 +180,19 @@ else{
                             <div class="modal-body">
                                 <div class="form-group">
                                     <label for="usr">Server Name</label>
-                                    <input class="form-control required2" type="text" name="server_name" placeholder="" required> 
+                                    <input class="form-control required2 required3" type="text" name="server_name" placeholder="" required> 
                                 </div>
                                 <div class="form-group">
                                     <label for="usr">Username</label>
-                                    <input class="form-control required2" type="text" name="username" placeholder="" required> 
+                                    <input class="form-control required2 required3" type="text" name="username" placeholder="" required> 
                                 </div>
                                 <div class="form-group">
                                     <label for="usr">Password</label>
-                                    <input class="form-control" type="text" name="password" placeholder="" required> 
+                                    <input class="form-control" type="password" name="password" placeholder=""> 
                                 </div>
                                 <div class="form-group">
                                     <label for="usr">Database Name</label>
-                                    <input class="form-control required2" type="text" name="database_name" placeholder="" required> 
+                                    <input class="form-control required2 required3" type="text" name="database_name" placeholder="" required> 
                                 </div>
                                 <button id="btn-database" type="button" class="btn btn-danger">Connect to Database</button> 
                             </div>
@@ -179,33 +213,94 @@ else{
                 </div>
             </div>
 
-            <form id="form-save-settings" action="#" style="margin-top:80px;">
+            <form id="form-save-settings" action="#" style="margin-top:80px;display:none">
                 <div id="sync-wrap">
                     <div id="sync">
-                        <div class="row">
-                            <div class="col-md-5">
-                                <select name="folder[]" class="form-control sync-from required3">
-                                    <option value="">-- Select Folder --</option>
-                                </select>
+                        <div class="card"  style="padding:10px; margin-bottom:15px;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <select name="folder[]" class="form-control sync-from required3">
+                                        <option value="">-- Select Folder --</option>
+                                    </select>
+                                </div>
+                                <div id="sync-center" class="col-md-1">
+                                    <center>
+                                        <label  style="margin-top:4%;">Sync to</label>
+                                    </center>
+                                </div>
+                                <div class="col-md-4">
+                                    <select name="table[]"  class="form-control sync-to required3">
+                                        <option value="">-- Select Table --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button  type="button" data-toggle="modal" class="btn btn-success btn-block sync-modal-button">Set Attribute</button>
+                                </div>
+                                <div id="sync-delete" class="col-md-1">
+                                    <label></label>
+                                </div>
                             </div>
-                            <div id="sync-center" class="col-md-2">
-                                <center>
-                                    <label>Sync to -></label>
-                                </center>
-                            </div>
-                            <div class="col-md-5">
-                                <select name="table[]"  class="form-control sync-to required3">
-                                    <option value="">-- Select Table --</option>
-                                </select>
-                            </div>
+                            <div class="modal sync-modal">
+                                <div class="modal-dialog modal-xl modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Set Attribute</h4>
+                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        </div>     
+                                        <div class="modal-body">
+                                            <div class="sync-attr">
+                                                <div class="card"  style="padding:10px; margin-bottom:15px;">
+                                                    <div class="row">
+                                                        <div class="col-md-4">
+                                                            <select class="form-control sync-attr-from required3">
+                                                                <option value="">-- Select Folder Attribute --</option>
+                                                            </select>
+                                                        </div>
+                                                        <div id="sync-center" class="col-md-1">
+                                                            <center>
+                                                                <label  style="margin-top:4%;">Sync to</label>
+                                                            </center>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <select class="form-control sync-attr-to required3">
+                                                                <option value="">-- Select Table Attribute --</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <div class="card" style="padding:0px; padding-left:7px; display:block">
+                                                                <input style="margin-right:7px;" class="direct-to-database" type="checkbox" value="yes">Save to Database
+                                                                <br><label style="margin-left:20px;margin-bottom:0px;margin-top:-8px;" >without Dropbox</label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-1 sync-delete-attr" >
+                                                            <label></label>
+                                                        </div>
+                                                    </div> 
+                                                </div>
+                                            </div>
+                                            <div class="sync-wrap-attr"></div>
+                                            <div class="row" style="margin-top:10px;">
+                                                <div class="col-md-2">
+                                                    <div id="btn-add-sync-attr">
+                                                        <button  type="button" class="btn btn-info add_field_button_attr">Add Sync Attribute</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>   
+                                        <div class="modal-footer">
+                                            <button id="btn-export" type="button" class="btn btn-success" data-dismiss="modal">Submit</button>
+                                        </div>  
+                                    </div>
+                                </div>
+                            </div> 
                         </div>
                     </div>
                 </div>
                 <div class="row" style="margin-top:10px;">
-                    <div class="col-md-5"></div>
                     <div class="col-md-2">
                         <div id="btn-add-sync">
-                            <center><button  type="button" class="btn btn-primary btn-info add_field_button">Add Sync</button></center>
+                            <button  type="button" class="btn btn-info add_field_button">Add Sync</button>
                         </div>
                     </div>
                 </div>
@@ -224,15 +319,77 @@ else{
 
 <script>
     var append;
+    var append_attr = "adasdas";
+
     function updateOption(){
-        $('#sync').children().children('#sync-center').children().prepend('<a href="#" class="remove_field"><i class="fa fa-times fa-lg"></i></a>');
+        $('#sync').children().children().children('#sync-delete').children().prepend('<a href="#" class="remove_field"><button  type="button" class="btn btn-danger btn-block"><i class="fa fa-trash" style="color:white; font-size:20px;"></i></button></a>');
         new_append=$('#sync').html();
-        $('#sync').children().children('#sync-center').children().children('.remove_field').remove();
+        $('#sync').children().children().children('#sync-delete').children().children('.remove_field').remove();
         return new_append;
     }
+
+    function updateOptionAttr(id){
+        $('#sync-attr-'+id).children().children().children('.sync-delete-attr').children().prepend('<a href="#" class="remove_field_attr"><button  type="button" class="btn btn-danger btn-block"><i class="fa fa-trash" style="color:white; font-size:20px;"></i></button></a>');
+        new_append=$('#sync-attr-'+id).html();
+        $('#sync-attr-'+id).children().children().children('.sync-delete-attr').children().children('.remove_field_attr').remove();
+        return new_append;
+    }
+    
+    function updateModalId(){
+        var i=0;
+        $(".sync-modal").each(function(){
+            $(this).attr("id", "sync-modal-"+i);
+            $(this).parent().find(".sync-modal-button").attr("id", "sync-modal-button-"+i);
+            $(this).parent().find(".sync-wrap-attr").attr("id", "sync-wrap-attr-"+i);
+            $(this).parent().find(".add_field_button_attr").attr("data-wrap-id", i);
+            $(this).parent().find(".sync-attr").attr("id", "sync-attr-"+i);
+
+            $(this).parent().find("#sync-modal-button-"+i).prop("onclick", null).off("click");
+            $(this).parent().find("#sync-modal-button-"+i).click(function () {
+                var clicked_button = $(this);
+                var selected_folder = $(this).parent().parent().find(".sync-from").val();
+                var selected_table = $(this).parent().parent().find(".sync-to").val();
+                if(selected_folder!="" && selected_table!=""){
+                    if($(this).parent().parent().parent().find(".sync-modal").attr("data-modal-folder") != selected_folder 
+                        || $(this).parent().parent().parent().find(".sync-modal").attr("data-modal-table") != selected_table){
+                        $(this).parent().parent().parent().find(".sync-wrap-attr").empty();
+                        $(this).parent().parent().parent().find(".sync-attr-from").empty();
+                        $(this).parent().parent().parent().find(".sync-attr-to").empty();
+                        $(this).parent().parent().parent().find(".sync-attr-from").append('<option value="">-- Select Folder Attribute --</option>');
+                        $(this).parent().parent().parent().find(".sync-attr-to").append('<option value="">-- Select Folder Attribute --</option>');
+                    }
+                    if(clicked_button.parent().parent().parent().find(".sync-attr-from").children().length == 1) {
+                        $('.'+selected_folder).children().each(function(){
+                            var attr = $(this).html();
+                            clicked_button.parent().parent().parent().find(".sync-attr-from").append('<option>'+ attr+ '</option>');
+                        });
+                        $('.'+selected_table).children().each(function(){
+                            var attr = $(this).html();
+                            clicked_button.parent().parent().parent().find(".sync-attr-to").append('<option>'+ attr+ '</option>');
+                        });
+                        $(this).parent().parent().parent().find(".sync-modal").attr("data-modal-folder",selected_folder);
+                        $(this).parent().parent().parent().find(".sync-modal").attr("data-modal-table",selected_table);
+                        $(this).parent().parent().parent().find(".sync-attr-from").attr("name",'attribute['+selected_folder+'][]' );
+                        $(this).parent().parent().parent().find(".sync-attr-to").attr("name", 'attribute['+selected_table+'][]' );
+                        $(this).parent().parent().parent().find(".direct-to-database").attr("name", 'direct_to_db['+selected_folder+'][]' );
+                    }
+                    $(this).parent().parent().parent().find(".sync-modal").modal('show');
+                }
+                else {
+                    alert("Please select folder and table first"); return;
+                }
+            });
+            i++;
+        });
+    }   
+    
+
     append = updateOption();
+    updateModalId();
+    
 
     $(document).ready(function(){
+
         $("#btn-save-settings").click(function () {
             if(validateEmptyField(".required3")) return;
             jQuery.ajax({
@@ -261,7 +418,7 @@ else{
                     $.each(data['table'], function(i, table) {
                         $('#database-table').append('\
                             <a data-toggle="collapse" href="#table-'+ i + '" class="list-group-item">'+table["table_name"]+'</a> \
-                            <div class="list-group collapse" id="table-'+ i + '">\
+                            <div class="list-group collapse '+table["table_name"]+'" id="table-'+ i + '">\
                             </div>\
                         ');
                         $.each(data['column'], function(j, column) { 
@@ -271,6 +428,7 @@ else{
                         $('.sync-to').append('<option>'+ table["table_name"] + '</option>')
                     });
                     append = updateOption();
+                    $("#form-save-settings").show();
                 }
             });
         });
@@ -281,12 +439,12 @@ else{
         $.each(form_attr['data'], function(i, item) {
             $('#dropbox-folder').append('\
                 <a data-toggle="collapse" href="#folder-'+ i + '" class="list-group-item">'+item["folder"]+'</a> \
-                <div class="list-group collapse" id="folder-'+ i + '">\
+                <div class="list-group collapse '+item["folder"]+'" id="folder-'+ i + '">\
                 </div>\
             ');
             $.each(item['attribute'], function(j, attribute) { 
                 $('#folder-' +  i).append('<a class="list-group-item">'+attribute+'</a>')
-                $('#folder-' +  i).append('<input type=hidden name=attribute['+item["folder"]+']['+j+'] value='+attribute+'>')
+                // $('#folder-' +  i).append('<input type=hidden name=attribute['+item["folder"]+']['+j+'] value='+attribute+'>')
             });
             $('.sync-from').append('<option>'+ item["folder"] + '</option>')
         });
@@ -321,12 +479,41 @@ else{
         if(x < max_fields){ //max input box allowed
             x++; //text box increment
             $(wrapper).append(append); //add input box
+            updateModalId();
         }
     });
     
     $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
         e.preventDefault(); 
-        $(this).parent().parent().parent().remove(); 
+        $(this).parent().parent().parent().parent().remove(); 
         x--;
     })  
+</script>
+
+
+<script>
+
+    //-- Variable --//
+    var max_fields2      = 50; //maximum input boxes allowed
+    var wrapper2   		= "#sync-wrap-attr"; //Fields wrapper
+    var add_button2      = $("#form-save-settings"); //Add button ID         
+    var x2 = 1; //initlal text box count
+
+    $(add_button2).on("click", ".add_field_button_attr", function(e){ //on add input button click
+        e.preventDefault();
+        if(x2 < max_fields2){ //max input box allowed
+            x2++; //text box increment
+            var wrap_id = $(this).attr("data-wrap-id");
+            append_attr = updateOptionAttr(wrap_id);
+            $(wrapper2+"-"+wrap_id).append(append_attr); //add input box
+
+            $(wrapper2+"-"+wrap_id).on("click",".remove_field_attr", function(e){ //user click on remove text
+                e.preventDefault(); 
+                $(this).parent().parent().parent().parent().remove(); 
+                x--;
+            })  
+        }
+    });
+    
+    
 </script>
