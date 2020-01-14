@@ -234,8 +234,13 @@ class FormController extends Controller
     {
         $form = Form::with('formInput')->find($id);
         $project = Project::find($form->project_id);
+        $app = new DropboxApp($project->dropbox_app_key, $project->dropbox_app_secret, $project->dropbox_access_token);
+        $dropbox = new Dropbox($app);
+        $account = $dropbox->getCurrentAccount(); 
+        $project_email = $account->getEmail();
 
         $request = (array)$form;
+        $request['project_email'] = $project_email;
         $request['app_key'] = $project->dropbox_app_key;
         $request['app_secret'] = $project->dropbox_app_secret;
         $request['access_token'] = $project->dropbox_access_token;
@@ -396,7 +401,7 @@ class FormController extends Controller
         $php = $php.'    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); ';
         $php = $php.'    $direct_attributes = ""; ';
         $php = $php.'    $direct_values = ""; ';
-        $php = $php.'    $excepted_values = array(); ';
+        $php = $php.'    $excepted_attrs = array(); ';
         $php = $php.'    foreach($direct_to_db_folder as $j => $attr){ ';
         $php = $php.'        $direct_attributes = $direct_attributes.$direct_to_db_table[$j]; ';
         $php = $php.'        $value_index = array_search($attr, $labels); ';
@@ -404,7 +409,7 @@ class FormController extends Controller
         $php = $php.'        $direct_values = $direct_values.\'"\'.$data.\'"\';  ';
         
                 
-        $php = $php.'        array_push($excepted_values,$values[$value_index]); ';
+        $php = $php.'        array_push($excepted_attrs,$labels[$value_index]); ';
         $php = $php.'        if($j < count($direct_to_db_folder)-1) { ';
         $php = $php.'            $direct_attributes = $direct_attributes.","; ';
         $php = $php.'            $direct_values = $direct_values.","; ';
@@ -413,12 +418,24 @@ class FormController extends Controller
         $php = $php.'    $query = "INSERT INTO ".$table_name."(".$direct_attributes.") VALUES(".$direct_values.")"; ';
         $php = $php.'    $sql = $conn->prepare($query); ';
         $php = $php.'    $sql->execute(); ';
+
+        $php = $php.'   $lastInsertId = $conn->lastInsertId();  ';
+        $php = $php.'   $query ="SHOW KEYS FROM ".$table_name." WHERE Key_name = \'PRIMARY\'"; ';
+        $php = $php.'   $sql = $conn->prepare($query); ';
+        $php = $php.'   $sql->execute(); ';
+        $php = $php.'   $result = $sql->fetchAll(); ';
+        $php = $php.'   foreach( $result as $baris ) { ';
+        $php = $php.'       $primary_column = $baris["Column_name"];  ';
+        $php = $php.'   } ';
+        $php = $php.'   $attr = array($primary_column => $lastInsertId);  ';
+        $php = $php.'   $row = $row + $attr;  ';
+
         $php = $php.'    $json_name = "update.json"; ';
         $php = $php.     '$i = 0; ';
         $php = $php.     'foreach($values as $value){ ';   
         $php = $php.        '$is_value = true; '; 
-        $php = $php.        'foreach($excepted_values as $excepted_value){ ';  
-        $php = $php.            'if($value == $excepted_value) $is_value = false; ';    
+        $php = $php.        'foreach($excepted_attrs as $excepted_attr){ ';  
+        $php = $php.            'if($labels[$i] == $excepted_attr) $is_value = false; ';    
         $php = $php.        '} ';
         $php = $php.        'if($is_value){ ';
         $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
@@ -470,6 +487,7 @@ class FormController extends Controller
         $php = $php.        '   $dropboxFile = new DropboxFile($target_file); ';
         $php = $php.        '   $file = $dropbox->upload($dropboxFile, $path, ["autorename" => true]); ';
         $php = $php.        '   $k++; ';
+        $php = $php.        '   unset($dropboxFile); ';
         $php = $php.        '   unlink($target_file); ';
         $php = $php.        '} ';
         $php = $php.        'unlink("dropbox/tmp/".$json_name); ';
@@ -485,7 +503,7 @@ class FormController extends Controller
         $php = $php.        '$shared_folder_id = $data["shared_folder_id"]; ';
         $php = $php.        '$member = json_decode(json_encode(array( ';
         $php = $php.        '    ".tag" => "email", ';
-        $php = $php.        '    "email" => "gusyana124@gmail.com" ';
+        $php = $php.        '    "email" => "'.$request->project_email.'" ';
         $php = $php.        ')), true); ';
 
         $php = $php.        '$response = $dropbox->postToAPI("/sharing/add_folder_member", [ ';

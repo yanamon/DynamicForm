@@ -1,4 +1,4 @@
-
+<?php $app_key="pguozkqfb6vn8w9"; $app_secret="dw5h7xegfdm356a"; $access_token="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2"; $project_name="Toko"; $server="localhost"; $user="root"; $pass=""; $db="db_toko"; $syncs[0]["folder"]="master_barang"; $syncs[0]["table"]="tb_barang"; $syncs[0]["table_attr"][0]="kode_barang"; $syncs[0]["folder_attr"][0]="kode_barang"; $syncs[0]["direct_to_db"]["kode_barang"]="no";  ?> 
 
 
 <?php
@@ -7,11 +7,11 @@
     use Kunnu\Dropbox\DropboxApp; 
     use Kunnu\Dropbox\Dropbox; 
 
-    // set_time_limit(0);
-    // $sleep_time = 2;
-    // while(true){
-    //     sleep($sleep_time);
-        // try{    
+    set_time_limit(0);
+    $sleep_time = 2;
+    while(true){
+        sleep($sleep_time);
+        try{    
             $app = new DropboxApp($app_key, $app_secret, $access_token); 
             $dropbox = new Dropbox($app);  
             $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
@@ -45,6 +45,7 @@
             }
 
             foreach($syncs as $sync){
+                $jenis_sync = "insert";
                 $path = "/".$project_name."/".$sync["folder"]."/unsynchronized";
                 $listData = $dropbox->listFolder($path);
                 if(empty($listData->getItems()->first())) echo "No unsynchronized data on ".$sync["folder"]."\n";
@@ -55,7 +56,14 @@
                     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
                     $first_folder_name = $listData->getItems()->first()->getName();
-                    $file_download = $dropbox->download($path."/".$first_folder_name."/insert.json");
+                    try{    
+                        $file_download = $dropbox->download($path."/".$first_folder_name."/insert.json");
+                    }catch(Exception $e){
+                        $file_download = $dropbox->download($path."/".$first_folder_name."/update.json");
+                        $jenis_sync = "update";
+                    }
+                    
+                    echo '#'.$jenis_sync."\n";
                     $file_content = json_decode($file_download->getContents(),true);
 
 
@@ -92,37 +100,53 @@
                         $last = array_pop($tmp);
                         $attachment_attr = array(implode('.', $tmp), $last);
                         $file_content[$attachment_attr[0]] = $attachment_folder."/".$attachment_folder."_".$k.".".$ext;
-                        if (($key = array_search($attachment_attr[0], $sync['folder_attr'])) !== false) {
-                            unset($sync['folder_attr'][$key]);
-                            array_push($sync['folder_attr'],$attachment_attr[0]);
-                        }
+                        // if (($key = array_search($attachment_attr[0], $sync['folder_attr'])) !== false) {
+                        //     unset($sync['folder_attr'][$key]);
+                        //     array_push($sync['folder_attr'],$attachment_attr[0]);
+                        // }
                         $k++;
                     }
-
                     
-                    $j = 0;
-                    foreach($sync['table_attr'] as $i => $attr){
-                        $attributes = $attributes.$attr;
-                        if($j < count($sync['table_attr'])-1) $attributes = $attributes.",";
+                    if($jenis_sync == "insert"){
+                        $j = 0;
+                        foreach($sync['table_attr'] as $i => $attr){
+                            $attributes = $attributes.$attr;
+                            if($j < count($sync['table_attr'])-1) $attributes = $attributes.",";
 
-                        $data = str_replace('"', '\"', $file_content[$sync['folder_attr'][$i]]);
-                        $values = $values.'"'.$data.'"';
-                        if($j < count($sync['table_attr'])-1) $values = $values.", ";
-                        $j++;
+                            $data = str_replace('"', '\"', $file_content[$sync['folder_attr'][$i]]);
+                            $values = $values.'"'.$data.'"';
+                            if($j < count($sync['table_attr'])-1) $values = $values.", ";
+                            $j++;
+                        }
+                        $query = "INSERT INTO ".$sync["table"]."(".$attributes.") VALUES(".$values.")";
+                        $sql = $conn->prepare($query);
+                        $sql->execute();
                     }
-                    
-                    $query = "INSERT INTO ".$sync["table"]."(".$attributes.") VALUES(".$values.")";
-                    $sql = $conn->prepare($query);
-                    $sql->execute();
+                    else if($jenis_sync == "update"){
+                        $j = 0;
+                        foreach($sync['folder_attr'] as $i => $attr){
+                            if(isset($file_content[$attr]) && $attr != $primary_column){
+                                $data = str_replace('"', '\"', $file_content[$attr]);
+                                $values = $values.$sync['table_attr'][$j].' = "'.$data.'"';
+                                if($j < count($sync['folder_attr'])-1) $values = $values.", ";
+                            }
+                            $j++;
+                        }
+                        $primary_id = $file_content[$primary_column];
+                        $query = "UPDATE ".$sync["table"]." SET ".$values." WHERE ".$primary_column." = ".$primary_id;
+                        $sql = $conn->prepare($query);
+                        $sql->execute();
+                    }
+
     
-                    // $move_path = "/".$project_name."/".$sync["folder"]."/synchronized";
-                    // $move = $dropbox->move($path."/".$first_folder_name, $move_path."/".$first_folder_name, true);
+                    $move_path = "/".$project_name."/".$sync["folder"]."/synchronized";
+                    $move = $dropbox->move($path."/".$first_folder_name, $move_path."/".$first_folder_name, true);
 
                     echo $query."\n";
                 }
             }
-    //     }catch(Exception $e){   
-    //         echo("Connection failed: " . $e->getMessage()."\n");
-    //     }
-    // }
+        }catch(Exception $e){   
+            echo("Connection failed: " . $e->getMessage()."\n");
+        }
+    }
 ?>

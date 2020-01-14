@@ -1,4 +1,4 @@
-
+<?php $app_key="pguozkqfb6vn8w9"; $app_secret="dw5h7xegfdm356a"; $access_token="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2"; $project_name="Toko"; $form_attr["data"][0]["folder"] = "master_barang";$form_attr["data"][0]["attribute"][0] = "kode_barang";$form_attr["data"][0]["attribute"][1] = "nama_barang";$form_attr["data"][0]["attribute"][2] = "harga_barang";$form_attr["data"][0]["attribute"][3] = "foto_barang_1";$form_attr["data"][0]["attribute"][4] = "foto_barang_2";$form_attr["data"][0]["attribute"][5] = "id_jenis_barang";$form_attr["data"][1]["folder"] = "master_customer";$form_attr["data"][1]["attribute"][0] = "nama_customer";$form_attr["data"][1]["attribute"][1] = "telp_customer";$form_attr["data"][1]["attribute"][2] = "alamat_customer";if(!isset($_POST["server_name"])){ ?><script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>
 
 
 <?php 
@@ -63,6 +63,15 @@ if(isset($_POST["folder"])){
         if($isPrepend2){
             $prepend2 = $prepend2.' ?> ';
             $prepend2 = $prepend2."\n";
+            $file = '../'.$folder.'.php';
+            $contents = file_get_contents($file);
+            $new_contents = preg_replace('/^.+\n/', '', $contents);
+            file_put_contents($file,$new_contents);
+            $fileContents = file_get_contents($file);
+            file_put_contents($file, $prepend2 . $fileContents);
+        }
+        else{
+            $prepend2 = "";
             $file = '../'.$folder.'.php';
             $contents = file_get_contents($file);
             $new_contents = preg_replace('/^.+\n/', '', $contents);
