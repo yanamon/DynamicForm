@@ -16,7 +16,7 @@ $(document).ready(function() {
             $('#input_fields_wrap').append('<div><input type="text" name="option[]" placeholder="New Option" class="option form-control form-control-sm"><input type="text" name="option[]" placeholder="New Option" class="option form-control form-control-sm"></div>');
             $('#btn-option-add').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
         }
-        else if($('option:selected', this).attr('data-is-option') == 2){
+        else if($('option:selected', this).attr('data-is-option') >= 2){
             $('#btn-option-add').append('<input type="file" id="json_upload" name="json_upload"  />');
             $("#json_upload").change(function(event) {
                 var reader = new FileReader();
@@ -75,5 +75,19 @@ $(document).ready(function() {
     $(wrapper2).on("click",".remove_field", function(e){ //user click on remove text
         e.preventDefault(); $(this).parent('div').remove(); x--;
     })
+
+    
+    $('#identifier').change(function() {
+        $('#json-identifier-upload').remove();
+        if($('#identifier').is(":checked")){
+            $('#json-identifier').append('\
+                <div class="form-group" id="json-identifier-upload">\
+                    <label for="usr">Identifier JSON File:</label>\
+                    <input type="file" name="json_identifier"  />\
+                </div>'
+            );
+        }
+        else isIdentifier = 1;
+    });
 
 });

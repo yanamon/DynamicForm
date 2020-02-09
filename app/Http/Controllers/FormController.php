@@ -47,11 +47,25 @@ class FormController extends Controller
             'html' => 'required',
             'form_name' => 'required|alpha_dash'
         ]);
+        $project = Project::find($request->project_id);
         $form = new Form();
         $form->title = $request->title;
         $form->description = $request->description;
         $form->project_id = $request->project_id;
         $form->form_name = $request->form_name;
+        $auth_file = $request->file('json_identifier');
+        if(!empty($auth_file)){
+            $user_path = 'file/'.Auth::user()->id.'/';
+            Storage::makeDirectory($user_path);
+            $project_path = $user_path.$project->project_name;
+            Storage::makeDirectory($project_path);
+            $form_path = $user_path.$project->project_name.'/'.$request->form_name;;
+            Storage::makeDirectory($form_path);
+            $path = $request->file('json_identifier')->storeAs(
+                $form_path, 'auth.json'
+            );
+            $form->auth_file = $form_path.'/auth.json';
+        }
         $form->save();
         $last_form_id = Form::max('id');
         foreach($request->html as  $i => $html){
@@ -78,6 +92,16 @@ class FormController extends Controller
         $form->title = $request->title;
         $form->description = $request->description;
         $form->form_name = $request->form_name;
+        $auth_file = $request->file('json_identifier');
+        if(!empty($auth_file)){
+            $form_path = $form->auth_file;
+            Storage::delete($form->auth_file);
+            $form_path = substr($form_path, 0, -9);
+            $path = $request->file('json_identifier')->storeAs(
+                $form_path, 'auth.json'
+            );
+            $form->auth_file = $form_path.'/auth.json';
+        }
         $form->save();
         
         FormInput::where('form_id', $request->id_edit)->delete();
@@ -248,8 +272,17 @@ class FormController extends Controller
         $request['title'] = $form->title;
         $request['description'] = $form->description;
         $request['form_name'] = $form->form_name;
+        $request['auth_file'] = $form->auth_file;
         $request['formInput'] = $form->formInput;
         $request = (object)$request;
+
+        if(!empty($request->auth_file)){
+            Storage::disk('public')->makeDirectory($project_path."/dropbox/auth/".$form->form_name);
+            Storage::disk('public')->makeDirectory($share_path."/dropbox/auth/".$form->form_name);
+            File::copy(storage_path('app/'.$form->auth_file), storage_path('app/public/'.$project_path."/dropbox/auth/".$form->form_name."/auth.json"));
+            File::copy(storage_path('app/'.$form->auth_file), storage_path('app/public/'.$share_path."/dropbox/auth/".$form->form_name."/auth.json"));
+
+        }
 
         $htmls = $this->createHtml($request);
         $filename = $form->form_name.".php";
@@ -332,6 +365,9 @@ class FormController extends Controller
         $php = $php.    'use Kunnu\Dropbox\DropboxFile; ';
         $php = $php.    'use Kunnu\Dropbox\DropboxApp; ';
         $php = $php.    'use Kunnu\Dropbox\Dropbox; ';
+
+        if(!empty($request->auth_file)) $php = $php.    '$auth_file = "dropbox/auth/'.$request->form_name.'/auth.json";  ';
+        
         $php = $php.    '$app_key = "'.$request->app_key.'";  ';
         $php = $php.    '$app_secret = "'.$request->app_secret.'"; ';
         $php = $php.    '$app = new DropboxApp($app_key, $app_secret); ';
@@ -343,6 +379,57 @@ class FormController extends Controller
         $php = $php.    '    session_destroy(); ';
         $php = $php.    '    header("Location: ".$_SERVER["PHP_SELF"]);     ';     
         $php = $php.    '    exit; ';
+        $php = $php.    '} ';
+
+        $php = $php.    'else if(isset($_POST["access_token"]) && isset($_POST["password"]) ){    ';  
+        $php = $php.    '    $password = $_POST["password"]; ';
+        $php = $php.    '    $logged_in = false; ';
+        $php = $php.    '    $verified = false; ';
+        $php = $php.    '    try{          ';
+        $php = $php.    '        $code = $_POST["access_token"]; ';     
+        $php = $php.    '        $authToken = $authHelper->getAccessToken($code); ';   
+        $php = $php.    '         $access_token =  $authToken->getToken(); ';  
+        $php = $php.    '         $app = new DropboxApp($app_key , $app_secret, $access_token); ';       
+        $php = $php.    '        $dropbox = new Dropbox($app);         ';  
+        $php = $php.    '        $response = $dropbox->postToAPI("/sharing/share_folder",["path" => "/ "]); ';  
+        $php = $php.    '    } catch(Exception $e){ ';
+        $php = $php.    '        $error = json_decode($e->getMessage(),true); ';         
+        $php = $php.    '        $error_share_entire = \'Error in call to API function "sharing/share_folder": You can’t share an entire Dropbox.\'; ';         
+        $php = $php.    '        if($e->getMessage() == $error_share_entire) $verified = true; '; 
+        $php = $php.    '         else if ($error["error"][".tag"] == "email_unverified") $_SESSION["login_error"] = "Login Fail ".$error["user_message"]["text"]." Verify your email here : https://www.dropbox.com/share/folders"; ';         
+        $php = $php.    '        else $_SESSION["login_error"] = "Login Fail ".$e->getMessage(); ';         
+        $php = $php.    '    } ';    
+        $php = $php.    '    if(!$verified) { ';
+        $php = $php.    '        header("Location: ".$_SERVER["PHP_SELF"]); ';         
+        $php = $php.    '        exit; ';   
+        $php = $php.    '    } ';
+        $php = $php.    '    $auth_file = file_get_contents($auth_file); ';
+        $php = $php.    '    $auths = json_decode($auth_file); ';
+        $php = $php.    '    $auth_keys = array_keys((array)$auths[0]); ';
+        $php = $php.    '    foreach($auth_keys as $i => $auth_key){ ';
+        $php = $php.    '        if($i == 0) $username_key = $auth_key; ';
+        $php = $php.    '        else  $password_key = $auth_key; ';
+        $php = $php.    '    } ';
+        $php = $php.    '    foreach($auths as $auth){ ';
+        $php = $php.    '        $auth = (array)$auth; ';
+        $php = $php.    '        if($password == $auth[$password_key]) { ';
+        $php = $php.    '            $logged_in = true; ';
+        $php = $php.    '            $username =  $auth[$username_key]; ';
+        $php = $php.    '        } ';
+        $php = $php.    '    } ';
+        $php = $php.    '    if($logged_in){ ';
+        $php = $php.    '        $account = $dropbox->getCurrentAccount(); ';   
+        $php = $php.    '        $_SESSION["display_name_key"] = $username_key; ';    
+        $php = $php.    '        $_SESSION["display_name"] = $username; ';    
+        $php = $php.    '        $_SESSION["access_token"] = $access_token; ';    
+        $php = $php.    '        header("Location: ".$_SERVER["PHP_SELF"]); ';     
+        $php = $php.    '        exit; '; 
+        $php = $php.    '    } ';
+        $php = $php.    '    else{ ';
+        $php = $php.    '        $_SESSION["login_error"] = "Login Fail Wrong Key"; ';        
+        $php = $php.    '        header("Location: ".$_SERVER["PHP_SELF"]); ';         
+        $php = $php.    '        exit; ';   
+        $php = $php.    '    } ';
         $php = $php.    '} ';
 
         $php = $php.    'else if(isset($_POST["access_token"])){  ';
@@ -370,7 +457,8 @@ class FormController extends Controller
         $php = $php.    '} ';
 
         $php = $php.    'else if(!isset($_SESSION["access_token"])){ ';
-        $php = $php.    '   include "dropbox/login.php";  ';
+        if(!empty($request->auth_file)) $php = $php.    '   include "dropbox/register.php";  ';
+        else $php = $php.    '   include "dropbox/login.php";  ';
         $php = $php.    '} ';
 
         $php = $php.    'else { ';
@@ -402,6 +490,12 @@ class FormController extends Controller
         $php = $php.'    $direct_attributes = ""; ';
         $php = $php.'    $direct_values = ""; ';
         $php = $php.'    $excepted_attrs = array(); ';
+        
+        $php = $php.'    if(isset($auth_file)){ ';
+        $php = $php.'        $attr = array($_SESSION["display_name_key"] => $_SESSION["display_name"]); ';
+        $php = $php.'        $row = $row + $attr; ';
+        $php = $php.'    } ';
+        
         $php = $php.'    foreach($direct_to_db_folder as $j => $attr){ ';
         $php = $php.'        $direct_attributes = $direct_attributes.$direct_to_db_table[$j]; ';
         $php = $php.'        $value_index = array_search($attr, $labels); ';
@@ -449,6 +543,12 @@ class FormController extends Controller
         $php = $php.'else{ ';
         $php = $php.'    $json_name = "insert.json"; ';
         $php = $php.        '$i = 0; ';
+        
+        $php = $php.'    if(isset($auth_file)){ ';
+        $php = $php.'        $attr = array($_SESSION["display_name_key"] => $_SESSION["display_name"]); ';
+        $php = $php.'        $row = $row + $attr; ';
+        $php = $php.'    } ';
+
         $php = $php.        'foreach($values as $value){ ';      
         $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
         $php = $php.            'else $attr = array($labels[$keys[$i]] => $value); ';
@@ -490,6 +590,7 @@ class FormController extends Controller
         $php = $php.        '   unset($dropboxFile); ';
         $php = $php.        '   unlink($target_file); ';
         $php = $php.        '} ';
+        $php = $php.        'unset($dropboxFile); '; 
         $php = $php.        'unlink("dropbox/tmp/".$json_name); ';
 
         $php = $php.        '$response = $dropbox->postToAPI("/sharing/share_folder",[ ';

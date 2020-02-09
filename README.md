@@ -1,14 +1,12 @@
-keamanan ✓
-attachment ✓
-tabel modal ✓
+yg belum :
 
-pak wira:
-export .sql (checkbox pas export project) varchar semua ✓ 
 
-sebagian kolom : ganti di master_barang.php, sama nama json ada 2 : insert_data(ga isi attrid) dan update_data(isi attr id) sql bisa di internet, set di setter vs login pake info DB
+1. sebagian kolom 
 -syncsetter foto barang yg dicentang
--formcontroller, email unud
 -syncsetter zip ulang zip yg lama hapus 
 
+2. view data???
 
-view data???
+3. jurusan
+
+4. data foreign key simpen di json bukan di html

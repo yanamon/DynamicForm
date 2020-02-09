@@ -10,6 +10,16 @@ $(document).ready(function() {
     var hidden_html2;
     var input_key;
 
+    function createIdentifier(json_obj, y){
+        var i;
+        var id_name;
+        
+        var identifier_html = "";
+        var firstItem = json_obj[0];
+
+        return identifier_html;
+    }
+
     function createTableModal(json_obj, y){
         var i;
         var id_name;
@@ -157,6 +167,14 @@ $(document).ready(function() {
             input_html2 = input_html2 + table_html;
             input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html = input_html + table_html
+            table_modal_json = 0;
+        }
+        
+        else if(input_is_option == 3) {
+            var table_html = createIdentifier(table_modal_json, y);
+            var placeholder = "\'Identifier\'";
+            input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';
+            input_html = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+'>';
             table_modal_json = 0;
         }
         else{ 

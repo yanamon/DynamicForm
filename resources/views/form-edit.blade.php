@@ -53,7 +53,7 @@
                     </div>
                 </div>
                 @endif
-                <form action="/update-form" method="POST" id="dynamic-form" class="dynamic-form">
+                <form action="/update-form" method="POST" id="dynamic-form" class="dynamic-form" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <div class="form-group card-title">
                         <input value="{{$form->title}}" id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
@@ -70,10 +70,13 @@
                                     <h4 class="modal-title">Save Form</h4>
                                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                                 </div>    
-                                <div class="modal-body">
+                                <div class="modal-body"  id="json-identifier">
                                     <div class="form-group">
                                         <label for="usr">Form Name:</label>
                                         <input value="{{$form->form_name}}" id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
+                                    </div>
+                                    <div class="form-group">
+                                        <input  id="identifier" name="identifier" type="checkbox" value="yes"> Add Identifier
                                     </div>
                                 </div>
                                 <div class="modal-footer">
