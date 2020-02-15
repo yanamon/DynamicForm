@@ -1,4 +1,4 @@
-<?php $app_key="pguozkqfb6vn8w9"; $app_secret="dw5h7xegfdm356a"; $access_token="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2"; $project_name="Toko"; $form_attr["data"][0]["folder"] = "master_barang";$form_attr["data"][0]["attribute"][0] = "kode_barang";$form_attr["data"][0]["attribute"][1] = "nama_barang";$form_attr["data"][0]["attribute"][2] = "harga_barang";$form_attr["data"][0]["attribute"][3] = "foto_barang_1";$form_attr["data"][0]["attribute"][4] = "foto_barang_2";$form_attr["data"][0]["attribute"][5] = "id_jenis_barang";$form_attr["data"][1]["folder"] = "master_customer";$form_attr["data"][1]["attribute"][0] = "nama_customer";$form_attr["data"][1]["attribute"][1] = "telp_customer";$form_attr["data"][1]["attribute"][2] = "alamat_customer";if(!isset($_POST["server_name"])){ ?><script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>
+<?php $app_key="pguozkqfb6vn8w9"; $app_secret="dw5h7xegfdm356a"; $access_token="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2"; $project_name="UNUD"; $form_attr["data"][0]["folder"] = "form_dosen";$form_attr["data"][0]["attribute"][0] = "nama_dosen";$form_attr["data"][1]["folder"] = "form_mahasiswa";$form_attr["data"][1]["attribute"][0] = "nama_mahasiswa";if(!isset($_POST["server_name"]) && !isset($_POST["request_update_data"]) ){ ?><script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>
 
 
 <?php 
@@ -8,7 +8,60 @@ use Kunnu\Dropbox\DropboxApp;
 use Kunnu\Dropbox\Dropbox; 
 
 
-if(isset($_POST["folder"])){ 
+
+if(isset($_POST["request_update_data"])){ 
+    $app = new DropboxApp($app_key, $app_secret, $access_token); 
+    $dropbox = new Dropbox($app);  
+    $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
+    $mounts = $response->getDecodedBody();
+    foreach($mounts["entries"] as $mount) {
+        if(isset($mount["path_lower"])) $path= $mount["path_lower"];
+        else {
+            $response = $dropbox->postToAPI("/sharing/mount_folder", [
+                "shared_folder_id" => $mount["shared_folder_id"]
+            ]); 
+            $mount_result = $response->getDecodedBody();
+            $path = $mount_result["path_lower"];
+        }
+        $mount_name = $mount["name"];
+        $mount_name = strtok($mount_name,' ');
+        $move_path = "/".$project_name."/".$mount_name."/unsynchronized/data";
+        $move = $dropbox->copy($path, $move_path, true); 
+        if($mount["access_type"][".tag"] == "editor"){
+            $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", [
+                "shared_folder_id" => $mount["shared_folder_id"],
+                "leave_a_copy" => false
+            ]);  
+        }
+        else if($mount["access_type"][".tag"] == "owner"){  
+            $response = $dropbox->postToAPI("/sharing/unshare_folder", [
+                "shared_folder_id" => $mount["shared_folder_id"],
+                "leave_a_copy" => false
+            ]);  
+        }
+    }
+    
+    foreach($form_attr["data"] as $sync){
+        $file_contents[$sync["folder"]] = array();
+        $path = "/".$project_name."/".$sync["folder"]."/unsynchronized";
+        $listData = $dropbox->listFolder($path);
+        if(!empty($listData->getItems()->first())){
+            foreach($listData->getItems() as $item){
+                $first_folder_name = $item->getName();
+                try{    
+                    $file_download = $dropbox->download($path."/".$first_folder_name."/insert.json");
+                }catch(Exception $e){
+                    $file_download = $dropbox->download($path."/".$first_folder_name."/update.json");
+                    $jenis_sync = "update";
+                }
+                array_push($file_contents[$sync["folder"]],json_decode($file_download->getContents(),true));
+            }
+        }
+    }
+    echo json_encode($file_contents);
+    exit;
+}
+else if(isset($_POST["folder"])){ 
     $folders = $_POST["folder"]; 
     $tables = $_POST["table"]; 
     $attributes = $_POST["attribute"]; 
@@ -146,6 +199,29 @@ else{
     </head>
     
     <body>
+        <!--  -->
+
+        <div class="container" style="padding-bottom:200px;">
+            <div class="row">
+                <div class="col-md-12" style="margin-top:20px;margin-bottom:20px">
+                    <center><h3>UNUD Dropbox Data</h3></center>
+                </div>
+            </div>
+             <!-- Nav pills -->
+            <ul class="nav nav-pills" role="tablist" id="view-folder">
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content" id="view-attr">
+            </div>
+            <div> 
+                <form id="request-update-data" method="POST">
+                    <input type="hidden" name="request_update_data" value="yes">
+                </form>
+                <button id="btn-update-data" class="btn btn-block btn-danger">Show Data</button>
+            </div>
+        </div>
+
+        <!--  -->
         <div class="container" style="padding-bottom:200px;">
             <div class="row">
                 <div class="col-md-12" style="margin-top:20px;margin-bottom:20px">
@@ -212,12 +288,12 @@ else{
             <div class="row">
                 <div class="col-md-6 shadow-sm">
                     <form>
-                        <div id="dropbox-folder" class="list-group">
+                        <div id="dropbox-folder" class="list-group" style="display:none">
                         </div>
                     </form>
                 </div>
                 <div class="col-md-6 shadow-sm">
-                    <div id="database-table" class="list-group">
+                    <div id="database-table" class="list-group" style="display:none">
                     </div>
                 </div>
             </div>
@@ -275,12 +351,12 @@ else{
                                                                 <option value="">-- Select Table Attribute --</option>
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-2">
+                                                        <!-- <div class="col-md-2">
                                                             <div class="card" style="padding:0px; padding-left:7px; display:block">
                                                                 <input style="margin-right:7px;" class="direct-to-database" type="checkbox" value="yes">Save to Database
                                                                 <br><label style="margin-left:20px;margin-bottom:0px;margin-top:-8px;" >without Dropbox</label>
                                                             </div>
-                                                        </div>
+                                                        </div> -->
                                                         <div class="col-md-1 sync-delete-attr" >
                                                             <label></label>
                                                         </div>
@@ -451,12 +527,34 @@ else{
                 <div class="list-group collapse '+item["folder"]+'" id="folder-'+ i + '">\
                 </div>\
             ');
+            
+            if(i == 0) var active = "active";
+            else var active = "";
+
+            $('#view-folder').append('<li class="nav-item"><a class="nav-link '+active+'" data-toggle="pill" href="#'+item["folder"]+'">'+item["folder"]+'</a></li>');
+
+            $('#view-attr').append('\
+                <div id="'+item["folder"]+'" class="container tab-pane '+active+'"><br>\
+                    <div class="table-responsive" style="background:white;padding:15px 5px;">\
+                        <table class="table table-bordered example">\
+                            <thead class="thead-dark">\
+                                <tr id="thead-'+item["folder"]+'"></tr>\
+                            </thead>\
+                            <tbody id="tbody-'+item["folder"]+'">\
+                            </tbody>\
+                        </table>\
+                    </div>  \
+                </div>\
+            ');
+
             $.each(item['attribute'], function(j, attribute) { 
                 $('#folder-' +  i).append('<a class="list-group-item">'+attribute+'</a>')
+                $('#thead-' +  item["folder"]).append('<th>'+attribute+'</th>')
                 // $('#folder-' +  i).append('<input type=hidden name=attribute['+item["folder"]+']['+j+'] value='+attribute+'>')
             });
             $('.sync-from').append('<option>'+ item["folder"] + '</option>')
         });
+        $('.example').DataTable();
         append = updateOption();
                
 
@@ -525,4 +623,44 @@ else{
     });
     
     
+</script>
+
+
+<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script> 
+<script>
+</script>
+
+
+
+<script>
+    $('#btn-update-data').click(function(){
+        $('#btn-update-data').empty();
+        $('#btn-update-data').append('<span class="spinner-border spinner-border-sm"></span> Loading..');
+    
+        jQuery.ajax({
+            type: "POST",
+            data:  $("#request-update-data").serialize(),
+            success: function(data) {
+                data = JSON.parse(data);
+                console.log(data);
+                $.each(form_attr['data'], function(i, folder) { 
+                    var i = 0;
+                    $.each(data[folder['folder']], function(i, attr) { 
+                        if(i==0) $('#tbody-'+ folder['folder']).empty();
+                        $('#tbody-'+ folder['folder']).append('<tr id="tr-'+folder['folder']+i+'"></tr>');
+                        $.each(attr, function(key, value) { 
+                            $('#tr-'+folder['folder']+i).append('<td>'+value+'</td>');
+                        });
+                        i++;
+                    });
+                });
+                $('#btn-update-data').empty();
+                $('#btn-update-data').append('Show Data');
+                alert("Retrieve Data Success");
+            }
+        });
+
+        
+    });
 </script>

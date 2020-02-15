@@ -10,3 +10,5 @@ yg belum :
 3. jurusan
 
 4. data foreign key simpen di json bukan di html
+
+pemakai service (host partner)

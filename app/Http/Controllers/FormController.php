@@ -55,6 +55,15 @@ class FormController extends Controller
         $form->form_name = $request->form_name;
         $auth_file = $request->file('json_identifier');
         if(!empty($auth_file)){
+            $auth_file = file_get_contents($auth_file);
+            $auths = json_decode($auth_file);
+            foreach($auths as  $key => $auth){
+                foreach($auth as  $key2 => $aut){
+                    $auth_input_key = $key2;
+                    break;
+                }
+                break;
+            }
             $user_path = 'file/'.Auth::user()->id.'/';
             Storage::makeDirectory($user_path);
             $project_path = $user_path.$project->project_name;
@@ -68,6 +77,12 @@ class FormController extends Controller
         }
         $form->save();
         $last_form_id = Form::max('id');
+
+        
+        $form_input = new FormInput();
+        $form_input->input_key = $auth_input_key;
+        $form_input->form_id = $last_form_id;
+        $form_input->save();
         foreach($request->html as  $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -94,6 +109,15 @@ class FormController extends Controller
         $form->form_name = $request->form_name;
         $auth_file = $request->file('json_identifier');
         if(!empty($auth_file)){
+            $auth_file = file_get_contents($auth_file);
+            $auths = json_decode($auth_file);
+            foreach($auths as  $key => $auth){
+                foreach($auth as  $key2 => $aut){
+                    $auth_input_key = $key2;
+                    break;
+                }
+                break;
+            }
             $form_path = $form->auth_file;
             Storage::delete($form->auth_file);
             $form_path = substr($form_path, 0, -9);
@@ -106,6 +130,11 @@ class FormController extends Controller
         
         FormInput::where('form_id', $request->id_edit)->delete();
 
+        
+        $form_input = new FormInput();
+        $form_input->input_key = $auth_input_key;
+        $form_input->form_id = $request->id_edit;
+        $form_input->save();
         foreach($request->html as $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -200,7 +229,7 @@ class FormController extends Controller
                 $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
             }
         }  
-        $prepend = $prepend.'if(!isset($_POST["server_name"])){ ?>';
+        $prepend = $prepend.'if(!isset($_POST["server_name"]) && !isset($_POST["request_update_data"]) ){ ?>';
         $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
         $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');
         $fileContents = file_get_contents($file);
