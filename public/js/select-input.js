@@ -77,9 +77,9 @@ $(document).ready(function() {
     })
 
     
-    $('#identifier').change(function() {
+    $('#form-type').change(function() {
         $('#json-identifier-upload').remove();
-        if($('#identifier').is(":checked")){
+        if($('#form-type').val() == 'With User Dropbox and Identifier'){
             $('#json-identifier').append('\
                 <div class="form-group" id="json-identifier-upload">\
                     <label for="usr">Identifier JSON File:</label>\
@@ -87,7 +87,6 @@ $(document).ready(function() {
                 </div>'
             );
         }
-        else isIdentifier = 1;
     });
 
 });

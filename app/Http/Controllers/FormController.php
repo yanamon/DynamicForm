@@ -53,6 +53,7 @@ class FormController extends Controller
         $form->description = $request->description;
         $form->project_id = $request->project_id;
         $form->form_name = $request->form_name;
+        $form->form_type = $request->form_type;
         $auth_file = $request->file('json_identifier');
         if(!empty($auth_file)){
             $auth_file = file_get_contents($auth_file);
@@ -80,7 +81,7 @@ class FormController extends Controller
 
         
         $form_input = new FormInput();
-        $form_input->input_key = $auth_input_key;
+        if(!empty($auth_file)) $form_input->input_key = $auth_input_key;
         $form_input->form_id = $last_form_id;
         $form_input->save();
         foreach($request->html as  $i => $html){
@@ -301,6 +302,7 @@ class FormController extends Controller
         $request['title'] = $form->title;
         $request['description'] = $form->description;
         $request['form_name'] = $form->form_name;
+        $request['form_type'] = $form->form_type;
         $request['auth_file'] = $form->auth_file;
         $request['formInput'] = $form->formInput;
         $request = (object)$request;
@@ -334,18 +336,22 @@ class FormController extends Controller
         $htmls = $htmls.'        <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> ';
         $htmls = $htmls.'            <i class="fa fa-user"></i> ';
         $htmls = $htmls.'        </button> ';
-        $htmls = $htmls.'        <div class="collapse navbar-collapse" id="navbarSupportedContent"> ';
-        $htmls = $htmls.'            <ul class="nav navbar-nav ml-auto"> ';
-        $htmls = $htmls.'                <li class="nav-item dropdown"> ';
-        $htmls = $htmls.'                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ';
-        $htmls = $htmls.'                       <?php echo $_SESSION["display_name"]; ?> ';
-        $htmls = $htmls.'                    </a> ';
-        $htmls = $htmls.'                    <div class="dropdown-menu dropdown-menu-right text-right" aria-labelledby="navbarDropdown"> ';
-        $htmls = $htmls.'                       <a class="dropdown-item" href="?logout=yes">Logout</a> ';
-        $htmls = $htmls.'                    </div> ';
-        $htmls = $htmls.'                </li> ';
-        $htmls = $htmls.'            </ul> ';
-        $htmls = $htmls.'        </div> ';
+
+        if($request->form_type!='Without User Dropbox'){
+            $htmls = $htmls.'        <div class="collapse navbar-collapse" id="navbarSupportedContent"> ';
+            $htmls = $htmls.'            <ul class="nav navbar-nav ml-auto"> ';
+            $htmls = $htmls.'                <li class="nav-item dropdown"> ';
+            $htmls = $htmls.'                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ';
+            $htmls = $htmls.'                       <?php echo $_SESSION["display_name"]; ?> ';
+            $htmls = $htmls.'                    </a> ';
+            $htmls = $htmls.'                    <div class="dropdown-menu dropdown-menu-right text-right" aria-labelledby="navbarDropdown"> ';
+            $htmls = $htmls.'                       <a class="dropdown-item" href="?logout=yes">Logout</a> ';
+            $htmls = $htmls.'                    </div> ';
+            $htmls = $htmls.'                </li> ';
+            $htmls = $htmls.'            </ul> ';
+            $htmls = $htmls.'        </div> ';
+        }
+
         $htmls = $htmls.'    </div> ';
         $htmls = $htmls.'</nav> ';
         $htmls = $htmls.'<div class="container">';
@@ -485,15 +491,18 @@ class FormController extends Controller
         $php = $php.    '   exit; ';
         $php = $php.    '} ';
 
-        $php = $php.    'else if(!isset($_SESSION["access_token"])){ ';
-        if(!empty($request->auth_file)) $php = $php.    '   include "dropbox/register.php";  ';
-        else $php = $php.    '   include "dropbox/login.php";  ';
-        $php = $php.    '} ';
+        if($request->form_type!='Without User Dropbox'){
+            $php = $php.    'else if(!isset($_SESSION["access_token"])){ ';
+            if(!empty($request->auth_file)) $php = $php.    '   include "dropbox/register.php";  ';
+            else $php = $php.    '   include "dropbox/login.php";  ';
+            $php = $php.    '} ';
+        }
 
         $php = $php.    'else { ';
-        $php = $php.    '   $access_token = $_SESSION["access_token"]; ';
         
-    
+        if($request->form_type=='Without User Dropbox') $php = $php.    '   $access_token = "'.$request->access_token.'"; ';
+        else $php = $php.    '   $access_token = $_SESSION["access_token"]; ';
+
         $php = $php.    'if(isset($_POST["input_value"])){ ';
         $php = $php.        '$folder_name = "'.$request->form_name.'"; ';
         $php = $php.        '$values = $_POST["input_value"]; ';
