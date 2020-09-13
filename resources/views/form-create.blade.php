@@ -73,12 +73,13 @@
                                         <input id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
                                     </div>
                                     <div class="form-group">
+                                        <label for="usr">Login Type:</label>
                                         <select class="form-control" id="form-type" name="form_type">
-                                            <option>With User Dropbox</option>
-                                            <option>With User Dropbox and Identifier</option>
-                                            <option>Without User Dropbox</option>
+                                            <option value=1>Login With User's Dropbox</option>
+                                            <option value=2>Login With User's Dropbox + Admin Auth</option>
+                                            <option value=0>Without Login</option>
                                         </select>
-                                        <!-- <input  id="identifier" name="identifier" type="checkbox" value="yes"> Add Identifier -->
+                                         <!-- <input  id="identifier" name="identifier" type="checkbox" value="yes"> Add Identifier -->
                                     </div>
                                 </div>
                                 <div class="modal-footer">

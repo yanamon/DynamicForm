@@ -45,7 +45,8 @@ class FormController extends Controller
             'project_id' => 'required',
             'input_key' => 'required',
             'html' => 'required',
-            'form_name' => 'required|alpha_dash'
+            'form_name' => 'required|alpha_dash',
+            'form_type' => 'required'
         ]);
         $project = Project::find($request->project_id);
         $form = new Form();
@@ -55,7 +56,7 @@ class FormController extends Controller
         $form->form_name = $request->form_name;
         $form->form_type = $request->form_type;
         $auth_file = $request->file('json_identifier');
-        if(!empty($auth_file)){
+        if(!empty($auth_file) && $request->form_type==2){
             $auth_file = file_get_contents($auth_file);
             $auths = json_decode($auth_file);
             foreach($auths as  $key => $auth){
@@ -79,11 +80,12 @@ class FormController extends Controller
         $form->save();
         $last_form_id = Form::max('id');
 
-        
-        $form_input = new FormInput();
-        if(!empty($auth_file)) $form_input->input_key = $auth_input_key;
-        $form_input->form_id = $last_form_id;
-        $form_input->save();
+        if(!empty($auth_file) && $request->form_type==2){
+            $form_input = new FormInput(); 
+            $form_input->input_key = $auth_input_key;
+            $form_input->form_id = $last_form_id;
+            $form_input->save();
+        }
         foreach($request->html as  $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -102,14 +104,16 @@ class FormController extends Controller
             'project_id' => 'required',
             'html' => 'required',
             'input_key' => 'required',
-            'form_name' => 'required'
+            'form_name' => 'required',
+            'form_type' => 'required'
         ]);
         $form = Form::find($request->id_edit);
         $form->title = $request->title;
         $form->description = $request->description;
         $form->form_name = $request->form_name;
+        $form->form_type = $request->form_type;
         $auth_file = $request->file('json_identifier');
-        if(!empty($auth_file)){
+        if(!empty($auth_file) && $request->form_type==2){
             $auth_file = file_get_contents($auth_file);
             $auths = json_decode($auth_file);
             foreach($auths as  $key => $auth){
@@ -132,10 +136,12 @@ class FormController extends Controller
         FormInput::where('form_id', $request->id_edit)->delete();
 
         
-        $form_input = new FormInput();
-        $form_input->input_key = $auth_input_key;
-        $form_input->form_id = $request->id_edit;
-        $form_input->save();
+        if(!empty($auth_file) && $request->form_type==2){
+            $form_input = new FormInput(); 
+            $form_input->input_key = $auth_input_key;
+            $form_input->form_id = $request->id_edit;
+            $form_input->save();
+        }
         foreach($request->html as $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -337,7 +343,7 @@ class FormController extends Controller
         $htmls = $htmls.'            <i class="fa fa-user"></i> ';
         $htmls = $htmls.'        </button> ';
 
-        if($request->form_type!='Without User Dropbox'){
+        if($request->form_type!=0){
             $htmls = $htmls.'        <div class="collapse navbar-collapse" id="navbarSupportedContent"> ';
             $htmls = $htmls.'            <ul class="nav navbar-nav ml-auto"> ';
             $htmls = $htmls.'                <li class="nav-item dropdown"> ';
@@ -491,7 +497,7 @@ class FormController extends Controller
         $php = $php.    '   exit; ';
         $php = $php.    '} ';
 
-        if($request->form_type!='Without User Dropbox'){
+        if($request->form_type!=0){
             $php = $php.    'else if(!isset($_SESSION["access_token"])){ ';
             if(!empty($request->auth_file)) $php = $php.    '   include "dropbox/register.php";  ';
             else $php = $php.    '   include "dropbox/login.php";  ';
@@ -500,7 +506,7 @@ class FormController extends Controller
 
         $php = $php.    'else { ';
         
-        if($request->form_type=='Without User Dropbox') $php = $php.    '   $access_token = "'.$request->access_token.'"; ';
+        if($request->form_type==0) $php = $php.    '   $access_token = "'.$request->access_token.'"; ';
         else $php = $php.    '   $access_token = $_SESSION["access_token"]; ';
 
         $php = $php.    'if(isset($_POST["input_value"])){ ';

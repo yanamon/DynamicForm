@@ -201,16 +201,14 @@ else{
     <body>
         <!--  -->
 
-        <div class="container" style="padding-bottom:200px;">
+        <!-- <div class="container" style="padding-bottom:200px;">
             <div class="row">
                 <div class="col-md-12" style="margin-top:20px;margin-bottom:20px">
                     <center><h3>UNUD Dropbox Data</h3></center>
                 </div>
             </div>
-             <!-- Nav pills -->
             <ul class="nav nav-pills" role="tablist" id="view-folder">
             </ul>
-            <!-- Tab panes -->
             <div class="tab-content" id="view-attr">
             </div>
             <div> 
@@ -219,7 +217,7 @@ else{
                 </form>
                 <button id="btn-update-data" class="btn btn-block btn-danger">Show Data</button>
             </div>
-        </div>
+        </div> -->
 
         <!--  -->
         <div class="container" style="padding-bottom:200px;">

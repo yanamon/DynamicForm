@@ -11,4 +11,8 @@ yg belum :
 
 4. data foreign key simpen di json bukan di html
 
+5. session jenis login (form_type)
+
+6. engine sinkron dan copy data ke unud pisah?
+
 pemakai service (host partner)

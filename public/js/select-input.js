@@ -79,10 +79,10 @@ $(document).ready(function() {
     
     $('#form-type').change(function() {
         $('#json-identifier-upload').remove();
-        if($('#form-type').val() == 'With User Dropbox and Identifier'){
+        if($('#form-type').val() == 2){
             $('#json-identifier').append('\
                 <div class="form-group" id="json-identifier-upload">\
-                    <label for="usr">Identifier JSON File:</label>\
+                    <label for="usr">Your Auth File:</label>\
                     <input type="file" name="json_identifier"  />\
                 </div>'
             );

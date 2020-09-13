@@ -76,7 +76,12 @@
                                         <input value="{{$form->form_name}}" id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
                                     </div>
                                     <div class="form-group">
-                                        <input  id="identifier" name="identifier" type="checkbox" value="yes"> Add Identifier
+                                        <label for="usr">Login Type:</label>
+                                        <select class="form-control" id="form-type" name="form_type">
+                                            <option value=1 @if($form->form_type==1) selected @endif >Login With User's Dropbox</option>
+                                            <option value=2 @if($form->form_type==2) selected @endif >Login With User's Dropbox + Admin Auth</option>
+                                            <option value=0 @if($form->form_type==0) selected @endif >Without Login</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="modal-footer">

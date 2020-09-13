@@ -14,6 +14,7 @@
                             <th>Form Name</th>
                             <th>Form Title</th>
                             <th>Form Description</th>
+                            <th>Login Type</th>
                             <th>Action</th>
                             <th>Export <input id="check-all" type="checkbox" checked></th>
                         </thead>
@@ -24,6 +25,12 @@
                                     <td>{{$form->form_name}}</td>
                                     <td>{{$form->title}}</td>
                                     <td>@if($form->description!=null){{$form->description}}@else No Description @endif</td>
+                                    <td>
+                                        @if($form->form_type==0) Without Login
+                                        @elseif($form->form_type==1) Login With User's Dropbox
+                                        @elseif($form->form_type==2) Login With User's Dropbox + Admin Auth
+                                        @endif
+                                    </td>
                                     <td>
                                         <center>	
                                             <a href="/show-form/{{$form->id}}">
@@ -56,7 +63,7 @@
                                 <button type="button" class="close" data-dismiss="modal">&times;</button>
                             </div>     
                             <div class="modal-body">
-                                <input style="margin-left:12px;" name="export_sql" type="checkbox" value="yes"> include mysql database structure
+                                <input style="margin-left:12px;" name="export_sql" type="checkbox" value="yes"> include mysql database structure (.sql)
                             </div>   
                             <div class="modal-footer">
                                 <button id="btn-export" type="button" class="btn btn-danger" onClick="document.getElementById('check-export-form').submit();">Export</button>
