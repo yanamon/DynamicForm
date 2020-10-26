@@ -33,6 +33,13 @@
                     </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
+                            <a target=”_blank” href="https://www.dropbox.com/login?cont=https%3A%2F%2Fwww.dropbox.com%2Fdevelopers%2Fapps%3F_tk%3Dpilot_lp%26_ad%3Dtopbar4%26_camp%3Dmyapps"> 
+                                <button type="button" class="btn btn-info btn-block">Create Dropbox App (API)</button>
+                            </a>
+                        </div>
+                    </div>
+                    <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
+                        <div class=form-group>
                             <label>Dropbox App Key</label>
                             <input class=form-control type=text name=dropbox_app_key placeholder="Example: pguozkqfb6vn1w9">
                         </div>

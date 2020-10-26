@@ -15,4 +15,6 @@ yg belum :
 
 6. engine sinkron dan copy data ke unud pisah?
 
+7. create project isi link ke web dropbox
+
 pemakai service (host partner)
