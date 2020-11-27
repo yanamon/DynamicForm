@@ -23,7 +23,7 @@ class FormController extends Controller
 
     public function index($project_id)
     {
-        $forms = Form::where('project_id', $project_id)->orderBy('id', 'DESC')->get();
+        $forms = Form::where('project_id', $project_id)->orderBy('menu_index', 'asc')->get();
         return view('form-show-all', compact('forms','project_id'));
     }
 
@@ -38,6 +38,40 @@ class FormController extends Controller
         return view('form-create', compact('inputTypes', 'project_id'));
     }
 
+    
+    public function change_menu_index($id, $change_direction)
+    {
+        $current_form = Form::find($id);
+        $forms = Form::where("project_id", $current_form->project_id)->orderBy('menu_index','asc')->get();
+
+        foreach($forms as $i => $form){
+            if($i==0) $prev_form = count($forms)-1;
+            else $prev_form = $i-1;
+            if($i==count($forms)-1) $next_form = 0;
+            else $next_form = $i+1;
+
+            if($form->id == $id){
+                if($change_direction == "up"){
+                    $swapped_form=Form::find($forms[$prev_form]->id);;
+                    $temp = $swapped_form->menu_index;
+                    $swapped_form->menu_index= $current_form->menu_index;
+                    $current_form->menu_index = $temp;
+                } 
+                else if($change_direction =="down"){
+                    $swapped_form=Form::find($forms[$next_form]->id);;
+                    $temp = $swapped_form->menu_index;
+                    $swapped_form->menu_index= $current_form->menu_index;
+                    $current_form->menu_index = $temp;
+                }
+            }
+        }
+
+        $current_form->save();
+        $swapped_form->save();
+
+        return redirect('project/'.$form->project_id);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -45,47 +79,52 @@ class FormController extends Controller
             'project_id' => 'required',
             'input_key' => 'required',
             'html' => 'required',
-            'form_name' => 'required|alpha_dash',
-            'form_type' => 'required'
+            'form_name' => 'required|alpha_dash'
         ]);
         $project = Project::find($request->project_id);
+
+        $last_index = Form::where("project_id", $project->id)->max('menu_index');
+        if($last_index==null) $last_index = 0;
+        
+
         $form = new Form();
         $form->title = $request->title;
         $form->description = $request->description;
         $form->project_id = $request->project_id;
         $form->form_name = $request->form_name;
-        $form->form_type = $request->form_type;
-        $auth_file = $request->file('json_identifier');
-        if(!empty($auth_file) && $request->form_type==2){
-            $auth_file = file_get_contents($auth_file);
-            $auths = json_decode($auth_file);
-            foreach($auths as  $key => $auth){
-                foreach($auth as  $key2 => $aut){
-                    $auth_input_key = $key2;
-                    break;
-                }
-                break;
-            }
-            $user_path = 'file/'.Auth::user()->id.'/';
-            Storage::makeDirectory($user_path);
-            $project_path = $user_path.$project->project_name;
-            Storage::makeDirectory($project_path);
-            $form_path = $user_path.$project->project_name.'/'.$request->form_name;;
-            Storage::makeDirectory($form_path);
-            $path = $request->file('json_identifier')->storeAs(
-                $form_path, 'auth.json'
-            );
-            $form->auth_file = $form_path.'/auth.json';
-        }
+        $form->menu_index = $last_index+1;
+        // $form->form_type = $request->form_type;
+        // $auth_file = $request->file('json_identifier');
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $auth_file = file_get_contents($auth_file);
+        //     $auths = json_decode($auth_file);
+        //     foreach($auths as  $key => $auth){
+        //         foreach($auth as  $key2 => $aut){
+        //             $auth_input_key = $key2;
+        //             break;
+        //         }
+        //         break;
+        //     }
+        //     $user_path = 'file/'.Auth::user()->id.'/';
+        //     Storage::makeDirectory($user_path);
+        //     $project_path = $user_path.$project->project_name;
+        //     Storage::makeDirectory($project_path);
+        //     $form_path = $user_path.$project->project_name.'/'.$request->form_name;;
+        //     Storage::makeDirectory($form_path);
+        //     $path = $request->file('json_identifier')->storeAs(
+        //         $form_path, 'auth.json'
+        //     );
+        //     $form->auth_file = $form_path.'/auth.json';
+        // }
         $form->save();
         $last_form_id = Form::max('id');
-
-        if(!empty($auth_file) && $request->form_type==2){
-            $form_input = new FormInput(); 
-            $form_input->input_key = $auth_input_key;
-            $form_input->form_id = $last_form_id;
-            $form_input->save();
-        }
+        // INTEGRASI NIM MHS DI IMISSU DGN yg ada di FORM
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $form_input = new FormInput(); 
+        //     $form_input->input_key = $auth_input_key;
+        //     $form_input->form_id = $last_form_id;
+        //     $form_input->save();
+        // }
         foreach($request->html as  $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -105,43 +144,40 @@ class FormController extends Controller
             'html' => 'required',
             'input_key' => 'required',
             'form_name' => 'required',
-            'form_type' => 'required'
         ]);
         $form = Form::find($request->id_edit);
         $form->title = $request->title;
         $form->description = $request->description;
         $form->form_name = $request->form_name;
-        $form->form_type = $request->form_type;
-        $auth_file = $request->file('json_identifier');
-        if(!empty($auth_file) && $request->form_type==2){
-            $auth_file = file_get_contents($auth_file);
-            $auths = json_decode($auth_file);
-            foreach($auths as  $key => $auth){
-                foreach($auth as  $key2 => $aut){
-                    $auth_input_key = $key2;
-                    break;
-                }
-                break;
-            }
-            $form_path = $form->auth_file;
-            Storage::delete($form->auth_file);
-            $form_path = substr($form_path, 0, -9);
-            $path = $request->file('json_identifier')->storeAs(
-                $form_path, 'auth.json'
-            );
-            $form->auth_file = $form_path.'/auth.json';
-        }
+        // $auth_file = $request->file('json_identifier');
+        // $form->form_type = $request->form_type;
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $auth_file = file_get_contents($auth_file);
+        //     $auths = json_decode($auth_file);
+        //     foreach($auths as  $key => $auth){
+        //         foreach($auth as  $key2 => $aut){
+        //             $auth_input_key = $key2;
+        //             break;
+        //         }
+        //         break;
+        //     }
+        //     $form_path = $form->auth_file;
+        //     Storage::delete($form->auth_file);
+        //     $form_path = substr($form_path, 0, -9);
+        //     $path = $request->file('json_identifier')->storeAs(
+        //         $form_path, 'auth.json'
+        //     );
+        //     $form->auth_file = $form_path.'/auth.json';
+        // }
         $form->save();
-        
         FormInput::where('form_id', $request->id_edit)->delete();
 
-        
-        if(!empty($auth_file) && $request->form_type==2){
-            $form_input = new FormInput(); 
-            $form_input->input_key = $auth_input_key;
-            $form_input->form_id = $request->id_edit;
-            $form_input->save();
-        }
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $form_input = new FormInput(); 
+        //     $form_input->input_key = $auth_input_key;
+        //     $form_input->form_id = $request->id_edit;
+        //     $form_input->save();
+        // }
         foreach($request->html as $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
@@ -173,6 +209,7 @@ class FormController extends Controller
         return $sql;
     }
 
+
     public function exportProject($id, Request $request)
     {
         if(empty($request->checked_form)) return redirect('project/'.$id);
@@ -183,11 +220,10 @@ class FormController extends Controller
         $forms = $forms->with('formInput')->get();
         $project = Project::find($id);
         
-
         $user_path = Auth::user()->id.'/';
         Storage::disk('public')->deleteDirectory($user_path);
         Storage::disk('public')->makeDirectory($user_path);
-        $project_path = $user_path.$project->project_name.'-master';
+        $project_path = $user_path.$project->project_name.'-admin';
         $share_path = $user_path.$project->project_name;
         Storage::disk('public')->makeDirectory($project_path);
         Storage::disk('public')->makeDirectory($project_path."/attachment");
@@ -201,7 +237,7 @@ class FormController extends Controller
         File::copyDirectory($storage_path1 , $storage_path4);
           
         foreach($forms as $i => $form){
-            $this->export($form->id, $share_path, $project_path);
+            $this->export($form->id, $share_path, $project_path, $i);
         }
         if(!empty($request->export_sql)){
             $sql = $this->createMysql($project->project_name, $forms);
@@ -242,7 +278,7 @@ class FormController extends Controller
         $fileContents = file_get_contents($file);
         file_put_contents($file, $prepend . $fileContents);  
 
-        $zip_file = $project->project_name.'-master.zip';
+        $zip_file = $project->project_name.'-admin.zip';
         $zip = new \ZipArchive();
         $zip->open($storage_path5."/".$zip_file, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
         $path = storage_path('app/public/'.$project_path);
@@ -250,7 +286,7 @@ class FormController extends Controller
         foreach ($files as $name => $file)
         {
             $filePath     = $file->getRealPath();
-            $relativePath = $project->project_name.'-master/'. substr($filePath, strlen($path));
+            $relativePath = $project->project_name.'-admin/'. substr($filePath, strlen($path));
             if (!$file->isDir()) {
                 $zip->addFile($filePath, $relativePath);
             }else {
@@ -290,7 +326,7 @@ class FormController extends Controller
         return response()->download($storage_path5."/".$zip_file);
     }
 
-    public function export($id, $share_path, $project_path)
+    public function export($id, $share_path, $project_path, $index)
     {
         $form = Form::with('formInput')->find($id);
         $project = Project::find($form->project_id);
@@ -305,10 +341,11 @@ class FormController extends Controller
         $request['app_secret'] = $project->dropbox_app_secret;
         $request['access_token'] = $project->dropbox_access_token;
         $request['project_name'] = $project->project_name;
+        $request['project_id'] = $project->id;
         $request['title'] = $form->title;
         $request['description'] = $form->description;
         $request['form_name'] = $form->form_name;
-        $request['form_type'] = $form->form_type;
+        $request['form_type'] = $project->form_type;
         $request['auth_file'] = $form->auth_file;
         $request['formInput'] = $form->formInput;
         $request = (object)$request;
@@ -321,10 +358,16 @@ class FormController extends Controller
 
         }
 
+        if($index==0){
+            $htmls = '<?php header("Location:'.$form->form_name.'.php"); exit(); ?>';
+            $filename = "index.php";
+            Storage::disk('public')->put($share_path."/".$filename, $htmls);
+            // Storage::disk('public')->put($project_path."/".$filename, $htmls);
+        }
         $htmls = $this->createHtml($request);
         $filename = $form->form_name.".php";
         Storage::disk('public')->put($share_path."/".$filename, $htmls);
-        Storage::disk('public')->put($project_path."/".$filename, $htmls);
+        // Storage::disk('public')->put($project_path."/".$filename, $htmls);
     }
 
     public function createHtml($request){
@@ -332,50 +375,78 @@ class FormController extends Controller
         $htmls = $htmls.$this->createPhpSubmit($request);
         $htmls = $htmls."<html>";
         $htmls = $htmls.$this->createHeader();
+
+
         $htmls = $htmls.'<body>';
-        $htmls = $htmls.'<nav class="navbar navbar-expand-lg navbar-light bg-light"> ';
-        $htmls = $htmls.'    <div class="container"> ';
-        $htmls = $htmls.'        <a href="<?php $link = $_SERVER["PHP_SELF"]; $link = substr($link, 1); $link = substr($link, 0, strpos($link, "/"));  echo "/".$link;?>"> <button type="button" id="sidebarCollapse" class="btn btn-info"> ';
-        $htmls = $htmls.'            <i class="fa fa-home"></i> ';
-        $htmls = $htmls.'            <span>Back</span> ';
-        $htmls = $htmls.'        </button></a> ';
-        $htmls = $htmls.'        <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> ';
-        $htmls = $htmls.'            <i class="fa fa-user"></i> ';
-        $htmls = $htmls.'        </button> ';
+
+
+        $htmls = $htmls.' ';
+        $htmls = $htmls.'<div class="wrapper"> ';
+        $htmls = $htmls.'    <nav id="sidebar"> ';
+        $htmls = $htmls.'        <div class="sidebar-header"> ';
+        $htmls = $htmls.'            <h3>'.$request->project_name.'</h3> ';
+        $htmls = $htmls.'        </div> ';
+        $htmls = $htmls.'        <ul class="list-unstyled components"> ';
+
+        $htmls = $htmls.' <p>ALL FORM LIST :</p> ';
+        $forms = Form::where('project_id', $request->project_id)->orderBy('menu_index','asc')->get();
+        foreach($forms as $i => $form){
+            $link = $form->form_name.".php";
+            $htmls = $htmls.' <li><a href="'.$link.'">'.$form->form_name.'</a></li> ';
+        }
+
+
+        $htmls = $htmls.'         </ul> ';
+        $htmls = $htmls.'         <ul class="list-unstyled CTAs"> ';
+        $htmls = $htmls.'            <li> ';
+        if($request->form_type!=0) $htmls = $htmls.' <a class="download" href="?logout=yes">LOGOUT</a> ';
+        $htmls = $htmls.'            </li> ';
+        $htmls = $htmls.'        </ul> ';
+        $htmls = $htmls.'    </nav> ';
+
+        $htmls = $htmls.'    <div id="content" style="padding-bottom:30px"> ';
 
         if($request->form_type!=0){
+            $htmls = $htmls.'<nav class="navbar navbar-expand-lg navbar-light bg-light"> ';
+            $htmls = $htmls.'    <div class="container-fluid"> ';
+            $htmls = $htmls.'        <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"> <i class="fa fa-user"></i> </button> ';
             $htmls = $htmls.'        <div class="collapse navbar-collapse" id="navbarSupportedContent"> ';
             $htmls = $htmls.'            <ul class="nav navbar-nav ml-auto"> ';
             $htmls = $htmls.'                <li class="nav-item dropdown"> ';
             $htmls = $htmls.'                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> ';
-            $htmls = $htmls.'                       <?php echo $_SESSION["display_name"]; ?> ';
+            $htmls = $htmls.'                        <?php echo $_SESSION["display_name"]; ?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ';
             $htmls = $htmls.'                    </a> ';
-            $htmls = $htmls.'                    <div class="dropdown-menu dropdown-menu-right text-right" aria-labelledby="navbarDropdown"> ';
-            $htmls = $htmls.'                       <a class="dropdown-item" href="?logout=yes">Logout</a> ';
-            $htmls = $htmls.'                    </div> ';
+            $htmls = $htmls.'                    <div class="dropdown-menu dropdown-menu-right text-right" aria-labelledby="navbarDropdown"> <a class="dropdown-item" href="?logout=yes">Logout</a> </div> ';
             $htmls = $htmls.'                </li> ';
             $htmls = $htmls.'            </ul> ';
             $htmls = $htmls.'        </div> ';
+            $htmls = $htmls.'    </div> ';
+            $htmls = $htmls.'</nav>     ';
         }
 
-        $htmls = $htmls.'    </div> ';
-        $htmls = $htmls.'</nav> ';
+
         $htmls = $htmls.'<div class="container">';
-        $htmls = $htmls.'<div class="row" style="margin-top:50px;">';
-        $htmls = $htmls.'<div class="col-md-2"></div>';
-        $htmls = $htmls.'<div id="card" class="col-md-8 shadow-sm" style="margin-top:25px">';
-        $htmls = $htmls.'<div>';
-        $htmls = $htmls.'<div class="form-group card-title">';
-        $htmls = $htmls.'<h3>'.$request->title.'</h3>';
+        $htmls = $htmls.'   <div class="row" style="margin-top:50px;">';
+        $htmls = $htmls.'       <div class="col-md-2"></div>';
+        $htmls = $htmls.'       <div id="card" class="col-md-8 shadow-sm" style="margin-top:25px">';
+        $htmls = $htmls.'           <div>';
+        $htmls = $htmls.'               <div class="form-group card-title">';
+        $htmls = $htmls.'               <h3>'.$request->title.'</h3>';
         if($request->description!=null) $htmls = $htmls.'<label>'.$request->description.'</label>';
-        $htmls = $htmls.'</div>';
-        $htmls = $htmls.'<form action="#" method="POST" enctype="multipart/form-data">';
+        $htmls = $htmls.'           </div>';
+        $htmls = $htmls.'           <form action="#" method="POST" enctype="multipart/form-data">';
         foreach($request->formInput as $formInput){
             $htmls = $htmls.$formInput->html;
         }
-        $htmls= $htmls.'<div class="form-group card-title" style="margin-bottom:30px;"><button id="btn-submit-form" type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
-        $htmls = $htmls.'</form>';
-        $htmls = $htmls.'</div></div></div></div>';
+        $htmls= $htmls.'                <div class="form-group card-title" style="margin-bottom:30px;"><button id="btn-submit-form" type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
+        $htmls = $htmls.'           </form>';
+        $htmls = $htmls.'       </div>';
+        $htmls = $htmls.'   </div>';
+        $htmls = $htmls.'</div>';
+
+        $htmls = $htmls.'</div>';
+        $htmls = $htmls.'</div>';
+        $htmls = $htmls.'</div>';
         $htmls = $htmls.'</body>';
         $htmls = $htmls.'</html>';
         $htmls = $htmls.$this->createPhpSuccess();
@@ -393,6 +464,9 @@ class FormController extends Controller
         $head = $head.'<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">';
         $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>';
         $head = $head.'<script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>';
+        
+        $head = $head.'<link rel="stylesheet" href="dropbox/sidebar.css">';
+        
         
         $head = $head.$this->createCss();
         $head = $head."</head>";
@@ -526,7 +600,6 @@ class FormController extends Controller
         $php = $php.        '    $j++; ';
         $php = $php.        '}  ';
         $php = $php.        '$keys = array_keys($values); ';
-
           
         $php = $php.'if(isset($server)){ ';
         $php = $php.'    $conn = new PDO("mysql:host=$server;dbname=$db", $user, $pass); ';
@@ -747,7 +820,6 @@ class FormController extends Controller
             $data = Form::where('project_id', $request->projectId)->where('form_name', $request->formName)->get();
             $row = count($data);
         }
-
         return response()->json($row);
     }
 

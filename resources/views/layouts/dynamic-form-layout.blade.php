@@ -11,9 +11,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>Dropbox Data Access</title>
+        <title>Form Generator</title>
         
         <!-- Resource -->
+
+        
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">        
@@ -60,10 +62,10 @@
             <!-- Sidebar  -->
             <nav id="sidebar">
                 <div class="sidebar-header">
-                    <h3>Dropbox Data Access</h3>
+                    <h3>Form Generator</h3>
                 </div>
                 <ul class="list-unstyled components">
-                    <p>Create dropbox data model access!</p>
+                    <p>Create your own form!</p>
                     {{-- <li class="active"><a href="/">Home</a></li> --}}
                     <li><a href="/all-project">Your Project</a></li>
                     <li><a href="/create-project">Create Project</a></li>

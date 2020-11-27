@@ -51,6 +51,16 @@
                             <input value="{{$project->dropbox_access_token}}" class=form-control type=text name=dropbox_access_token placeholder="Example: apa_LdNqwrsAAAAAAAABfUSb9a7JZ5YuUMOK9FWi3oQp1AnPKyl8bARec7pjPns2">
                         </div>
                     </div>
+                    <div id="json-identifier" data-key=harga_barang data-id=1 class=card-input>
+                        <div class="form-group">
+                            <label for="usr">Login Type:</label>
+                            <select class="form-control" id="form-type" name="form_type">
+                                <option value=1 @if($project->form_type==1) selected @endif  >Login With User's Dropbox</option>
+                                <!-- <option value=2>Login With User's Dropbox + Admin Auth</option> -->
+                                <option value=0  @if($project->form_type==0) selected @endif >Without Login</option>
+                            </select>
+                        </div>
+                    </div>
                     <div id=card-input-1 data-key=harga_barang data-id=1 class=card-input>
                         <div class=form-group>
                             <button type="submit" class="btn btn-success btn-block">Submit</button>

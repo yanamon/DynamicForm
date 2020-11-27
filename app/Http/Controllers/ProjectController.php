@@ -49,7 +49,8 @@ class ProjectController extends Controller
             'project_name' => 'required|alpha_dash|unique:projects',
             'dropbox_app_key' => 'required',
             'dropbox_app_secret' => 'required',
-            'dropbox_access_token' => 'required'
+            'dropbox_access_token' => 'required',
+            'form_type' => 'required'
         ]);
                 
         $project = new Project();
@@ -57,7 +58,10 @@ class ProjectController extends Controller
         $project->dropbox_app_key = $request->dropbox_app_key;
         $project->dropbox_app_secret = $request->dropbox_app_secret;
         $project->dropbox_access_token = $request->dropbox_access_token;
+        $project->form_type = $request->form_type;
         $project->user_id = Auth::user()->id;
+
+        
         $project->save();
         return redirect('all-project/');
     }
@@ -98,13 +102,15 @@ class ProjectController extends Controller
             'project_name' => 'required|alpha_dash|unique:projects,project_name,'.$request->id,
             'dropbox_app_key' => 'required',
             'dropbox_app_secret' => 'required',
-            'dropbox_access_token' => 'required'
+            'dropbox_access_token' => 'required',
+            'form_type' => 'required'
         ]);
         $project = Project::find($request->id);
         $project->project_name = $request->project_name;
         $project->dropbox_app_key = $request->dropbox_app_key;
         $project->dropbox_app_secret = $request->dropbox_app_secret;
         $project->dropbox_access_token = $request->dropbox_access_token;
+        $project->form_type = $request->form_type;
         $project->save();
         return redirect('all-project');
     }

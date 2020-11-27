@@ -24,6 +24,7 @@
                         <label class="card-text">Dropbox App Key : {{$project->dropbox_app_key}}</label><br>
                         <label class="card-text">Dropbox App Secret : {{$project->dropbox_app_secret}}</label><br>
                         <label class="card-text">Dropbox Access Token : {{$project->dropbox_access_token }}</label><br>
+                        <label class="card-text">Login Type : @if($project->form_type==1) Login With User's Dropbox @endif @if($project->form_type==0) Without Login @endif</label><br>
                         {{-- <label class="card-text">Dropbox Access Token : {{ str_limit($project->dropbox_access_token, $limit = 30, $end = '...') }}</label><br> --}}
                         <a href="/project/{{$project->id}}" class="btn btn-primary">Show Form</a>
                         </div>

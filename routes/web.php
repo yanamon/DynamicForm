@@ -15,6 +15,7 @@ Route::post('/store-form', 'FormController@store');
 Route::get('/edit-form/{id}', 'FormController@edit');
 Route::post('/update-form', 'FormController@update');
 Route::post('/delete-form/{id}', 'FormController@destroy');
+Route::get('/change-menu-index/{id}/{change_direction}', 'FormController@change_menu_index');
 
 
 Route::get('/export-project/{id}', 'FormController@exportProject');
