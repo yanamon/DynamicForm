@@ -33,19 +33,25 @@
                                     </td> -->
                                     <td>
                                         <center>	
-                                            <a href="/show-form/{{$form->id}}">
+                                            <a href="/show-form/{{$form->id}}" title="Show Form">
                                                 <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
                                             </a>     
-                                            <a href="/edit-form/{{$form->id}}">
+                                            <a href="/edit-form/{{$form->id}}" title="Edit Form">
                                                 <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
                                             </a> 
-                                            <a data-id="{{ $form->id }}" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">
+                                            <a data-id="{{ $form->id }}" title="Delete Form" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">
                                                 <i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i>
-                                            </a>    <br>
-                                            <a href="/change-menu-index/{{ $form->id }}/{{'down'}}">
+                                            </a>    
+                                            
+                                            <br>
+                                            
+                                            <a href="/form/{{$form->id}}/sub-forms" title="Create Sub Form">
+                                                <i class="fa fa-file" style="color:orange; font-size:20px;"></i>
+                                            </a>   
+                                            <a href="/change-menu-index/{{ $form->id }}/{{'down'}}" title="Move Down">
                                                 <i class="fa fa-arrow-down" style="color:white; font-size:20px;"></i>
                                             </a>          
-                                            <a href="/change-menu-index/{{ $form->id }}/{{'up'}}">
+                                            <a href="/change-menu-index/{{ $form->id }}/{{'up'}}" title="Move Up">
                                                 <i class="fa fa-arrow-up" style="color:white; font-size:20px;"></i>
                                             </a>                        
                                         </center>												
@@ -77,6 +83,8 @@
                         </div>
                     </div>
                 </div> 
+
+
             </form>
         </div>
     </div>

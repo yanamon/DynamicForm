@@ -69,7 +69,7 @@ class FormController extends Controller
         $current_form->save();
         $swapped_form->save();
 
-        return redirect('project/'.$form->project_id);
+        return redirect('project/'.$form->project_id.'/forms');
     }
 
     public function store(Request $request)
@@ -132,7 +132,7 @@ class FormController extends Controller
             $form_input->form_id = $last_form_id;
             $form_input->save();
         }
-        return redirect('project/'.$request->project_id);
+        return redirect('project/'.$request->project_id.'/forms');
 
     }
 
@@ -185,7 +185,7 @@ class FormController extends Controller
             $form_input->form_id = $request->id_edit;
             $form_input->save();
         }
-        return redirect('project/'.$request->project_id);
+        return redirect('project/'.$request->project_id.'/forms');
 
     }
 
@@ -212,7 +212,7 @@ class FormController extends Controller
 
     public function exportProject($id, Request $request)
     {
-        if(empty($request->checked_form)) return redirect('project/'.$id);
+        if(empty($request->checked_form)) return redirect('project/'.$id.'/forms');
         foreach($request->checked_form as $i => $checked_form_id){
             if($i==0) $forms = Form::where('id', $checked_form_id);
             else $forms->orWhere('id', $checked_form_id);
@@ -839,7 +839,7 @@ class FormController extends Controller
         $project_id = $form->project_id;
         $inputs = FormInput::where('form_id', $form->id)->delete();
         $form = Form::find($id)->delete();
-        return redirect('project/'.$project_id);
+        return redirect('project/'.$project_id.'/forms');
     }
 
 }
