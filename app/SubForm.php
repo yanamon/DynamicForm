@@ -15,4 +15,8 @@ class SubForm extends Model
     public function form(){
       return $this->belongsTo('App\Form', 'form_id');
     }
+
+    public function formInput(){
+      return $this->belongsTo('App\FormInput', 'form_input_id');
+    }
 }

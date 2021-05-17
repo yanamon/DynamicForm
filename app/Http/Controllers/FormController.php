@@ -7,6 +7,8 @@ use App\InputType;
 use App\Form;
 use App\FormInput;
 use App\Project;
+use App\SubForm;
+use App\SubFormInput;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use File;
@@ -344,6 +346,7 @@ class FormController extends Controller
         $request['project_id'] = $project->id;
         $request['title'] = $form->title;
         $request['description'] = $form->description;
+        $request['form_id'] = $id;
         $request['form_name'] = $form->form_name;
         $request['form_type'] = $project->form_type;
         $request['auth_file'] = $form->auth_file;
@@ -429,7 +432,8 @@ class FormController extends Controller
         $htmls = $htmls.'   <div class="row" style="margin-top:50px;">';
         $htmls = $htmls.'       <div class="col-md-2"></div>';
         $htmls = $htmls.'       <div id="card" class="col-md-8 shadow-sm" style="margin-top:25px">';
-        $htmls = $htmls.'           <div>';
+        $htmls = $htmls.'           <div class="tab-content">';
+        $htmls = $htmls.'           <div role="tabpanel" class="tab-pane active" id="form-'.$request->form_name.'">';
         $htmls = $htmls.'               <div class="form-group card-title">';
         $htmls = $htmls.'               <h3>'.$request->title.'</h3>';
         if($request->description!=null) $htmls = $htmls.'<label>'.$request->description.'</label>';
@@ -441,16 +445,98 @@ class FormController extends Controller
         $htmls= $htmls.'                <div class="form-group card-title" style="margin-bottom:30px;"><button id="btn-submit-form" type="submit" class="col-md-12 btn btn-success btn-block">Submit</button></div>';
         $htmls = $htmls.'           </form>';
         $htmls = $htmls.'       </div>';
+
+
+        //subform        
+        $subforms = Subform::where('form_id', $request->form_id)->get();
+        foreach($subforms as $subform){
+            $htmls = $htmls.$this->createSubForm($request, $subform);
+        }
+
         $htmls = $htmls.'   </div>';
         $htmls = $htmls.'</div>';
 
         $htmls = $htmls.'</div>';
         $htmls = $htmls.'</div>';
         $htmls = $htmls.'</div>';
+        $htmls = $htmls.'</div>';
         $htmls = $htmls.'</body>';
         $htmls = $htmls.'</html>';
+
+        $htmls = $htmls.'<script> ';
+		$htmls = $htmls.'$(".tab-'.$form->form_name.'").click(function (e) { ';
+        $htmls = $htmls.'	e.preventDefault(); ';
+        $htmls = $htmls.'	$(".subform").removeClass("active"); ';
+        $htmls = $htmls.'	$("#form-'.$form->form_name.'").addClass("active"); ';
+        $htmls = $htmls.'}); ';
+        $htmls = $htmls.'</script> ';
+
         $htmls = $htmls.$this->createPhpSuccess();
         return $htmls;
+    }
+
+    public function createSubForm($request, $subform){
+        
+        $html = '';
+        $html = $html.'<div role="tabpanel" class="tab-pane subform" id=subform-'.$subform->sub_form_name.'> ';
+        $html = $html.'    <div class="form-group card-title"> ';
+        $html = $html.'        <h3>'.$subform->title.'</h3> ';
+        if($request->description!=null) $html = $html.'<label>'.$subform->description.'</label>';
+        $html = $html.'    </div> ';
+
+
+        $subform_inputs = SubFormInput::where('sub_form_id', $subform->id)->get();
+        foreach($subform_inputs as $subform_input){
+            $html = $html.$subform_input->html;
+        }
+
+        //lasttttttttttt 
+        $n = $subform->html_key;
+
+        $html = $html.'    <div class="form-group card-title" style="margin-bottom:30px;"> ';
+        $html = $html.'        <button id=btn-submit-subform-'.$n.' class="col-md-12 btn btn-success btn-block">Submit</button> ';
+        $html = $html.'        <button type="button" class="col-md-12 btn btn-info btn-block"><a class="tab-'.$request->form_name.'">Back to Main Form</a></button> ';
+        $html = $html.'        <script> ';
+        $html = $html.'            var subform_'.$n.'_data = 0;  ';
+        $html = $html.'            $("#btn-submit-subform-'.$n.'").click(function() { ';
+        $html = $html.'                var subform_id = "subform-'.$n.'-"+subform_'.$n.'_data; ';
+        $html = $html.'                $("#card-input-'.$n.'").find("tbody").append("<tr id="+subform_id+"></tr>"); ';
+        $html = $html.'                $("#subform-'.$subform->sub_form_name.'").find(".subform-input").each(function(index) { ';
+        $html = $html.'                    if(index%2==0){ ';
+        $html = $html.'                        $("#"+subform_id).append("<td>"+this.value+"</td>"); ';
+        $html = $html.'                        $("#"+subform_id).append("<input type=hidden name=input_value['.$n.'][] value="+this.value+">"); ';
+        $html = $html.'                        $(this).val(""); ';
+        $html = $html.'                    } ';
+        $html = $html.'                    else{ ';
+        $html = $html.'                        $("#"+subform_id).append("<input type=hidden name=input_label['.$n.'][] value="+this.value+">"); ';
+        $html = $html.'                    } ';
+        $html = $html.'                }); ';
+        $html = $html.'                var delete_row_id = "delete-row-'.$n.'"+subform_'.$n.'_data; ';
+        $html = $html.'                $("#"+subform_id).append(\'<td><center><a href="javascript:void(0)" id="+delete_row_id+" data-tr="+subform_id+"><i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i></a></center></td>\'); ';
+        $html = $html.'                $("#"+delete_row_id).click(function(){ ';
+        $html = $html.'                    var tr_id = $(this).attr("data-tr"); ';
+        $html = $html.'                    $("#"+tr_id).remove(); ';
+        $html = $html.'                    subform_'.$n.'_data--; ';
+        $html = $html.'                    if(subform_'.$n.'_data==0) $("#subform-'.$n.'").val(""); ';
+        $html = $html.'                    else $("#subform-'.$n.'").val(subform_'.$n.'_data+" Row Data"); ';
+        $html = $html.'                    alert("Data Deleted"); ';
+        $html = $html.'                }); ';
+        $html = $html.'                subform_'.$n.'_data++; ';
+        $html = $html.'                $("#subform-'.$n.'").val(subform_'.$n.'_data+" Row Data"); ';
+        $html = $html.'                alert("Data Added to Main Form"); ';
+        $html = $html.'            }); ';
+        $html = $html.'        </script> ';
+        $html = $html.'        <script> ';
+        $html = $html.'            $("#tab-'.$subform->sub_form_name.'").click(function (e) { ';
+        $html = $html.'                e.preventDefault(); ';
+        $html = $html.'                $("#form-'.$request->form_name.'").removeClass("active"); ';
+        $html = $html.'                $("#subform-'.$subform->sub_form_name.'").addClass("active"); ';
+        $html = $html.'            }); ';
+        $html = $html.'        </script> ';
+        $html = $html.'    </div> ';
+        $html = $html.'</div> ';
+
+        return $html;
     }
 
     public function createHeader(){
@@ -667,10 +753,30 @@ class FormController extends Controller
         $php = $php.'    } ';
 
         $php = $php.        'foreach($values as $value){ ';      
-        $php = $php.            'if(is_array($value)) $attr = array($labels[$keys[$i]] => implode(", ",$value));  ';
-        $php = $php.            'else $attr = array($labels[$keys[$i]] => $value); ';
-        $php = $php.            '$row = $row + $attr; ';
-        $php = $php.            '$i++; ';
+        $php = $php.        '    if (is_array($value)) { ';  
+        $php = $php.        '        if(isset($labels[$keys[$i]]["main"])){ ';  
+        $php = $php.        '            $attr2 = array(); ';  
+        $php = $php.        '            $attr_count = $labels[$keys[$i]]["count"];  ';  
+        $php = $php.        '            $attr_total = $attr_count; ';  
+        $php = $php.        '            $j = 0; ';  
+        $php = $php.        '            $k = 0; ';  
+        $php = $php.        '            foreach($value as $value2){ ';  
+        $php = $php.        '                $attr_label = $labels[$keys[$i]][$j]; ';  
+        $php = $php.        '                $attr2[$k][$attr_label] = $value2; ';  
+        $php = $php.        '                if($j == $attr_total-1) { ';  
+        $php = $php.        '                    $k++; ';  
+        $php = $php.        '                    $attr_total = $attr_total + $attr_count; ';  
+        $php = $php.        '                } ';  
+        $php = $php.        '                $j++; ';  
+        $php = $php.        '            } ';  
+        $php = $php.        '            $attr = array($labels[$keys[$i]]["main"] => $attr2); ';  
+        $php = $php.        '       } ';  
+        $php = $php.        '        else $attr = array( $labels[$keys[$i]] => implode(", ", $value));         ';  
+        $php = $php.        '    } ';  
+        $php = $php.        '    else $attr = array($labels[$keys[$i]] => $value); ';  
+        $php = $php.        '    $row = $row + $attr; ';  
+        $php = $php.        '    $i++; ';  
+
         $php = $php.        '} ';
         $php = $php.'} ';
       

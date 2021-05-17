@@ -1,4 +1,4 @@
-@extends('layouts.dynamic-form-layout')
+@extends('layouts.dynamic-subform-layout')
 @section('body')
 
 <script>

@@ -12,4 +12,8 @@ class FormInput extends Model
 		return $this->belongsTo('App\Form', 'form_id');
     }
 
+    public function subForm(){
+      return $this->hasMany('App\SubForm', 'form_input_id');
+    }
+
 }

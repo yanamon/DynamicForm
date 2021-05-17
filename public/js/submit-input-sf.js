@@ -1,0 +1,344 @@
+$(document).ready(function() {
+    var input_is_option;
+    var input_label;
+    var input_type;
+    var div_html;
+    var div_html2;
+    var input_html;
+    var input_html2;
+    var hidden_html;
+    var hidden_html2;
+    var input_key;
+
+    function createIdentifier(json_obj, y){
+        var i;
+        var id_name;
+        
+        var identifier_html = "";
+        var firstItem = json_obj[0];
+
+        return identifier_html;
+    }
+
+    function createTableModal(json_obj, y){
+        var i;
+        var id_name;
+        
+        var table_html = "";
+        var firstItem = json_obj[0];
+        table_html = table_html +        
+            '<div class=modal id=table-modal-'+y+'>';
+        table_html = table_html +  
+                '<div class=\'modal-dialog modal-xl modal-dialog-scrollable\'>\
+                    <div class=modal-content>\
+                        <div class=modal-header>\
+                            <h4 class=modal-title>Select Data</h4>\
+                            <button type=button class=close data-dismiss=modal>&times;</button>\
+                        </div>\
+                        <div class=modal-body>\
+                            <div class=table-responsive>\
+                                <table id=example class=\'table table-bordered\'>\
+                                    <thead class=thead-dark>\
+                                        <th></th>';
+                                        $i = 0;
+                                        for(key in firstItem) {
+                                            if($i>0)table_html = table_html + '<th>'+key+'</th>';
+                                            $i++;
+                                        }
+        table_html = table_html +  '</thead>\
+                                    <tbody>\
+                                        <tr>';
+                                            i = 0
+                                            $.each(json_obj, function(key1, items) {
+                                                $.each(items, function(key2, item) {
+                                                    if(i==0) {
+                                                        id_name = key2;
+                                                        if(id_name == key2) table_html = table_html + '<td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                    }
+                                                    else {
+                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
+                                                        else table_html = table_html + '<td>'+item+'</td>';
+                                                    }
+                                                    i++;
+                                                });
+                                            });
+        table_html = table_html +       '</tr>\
+                                    </tbody>\
+                                </table>\
+                            </div>\
+                        </div>\
+                        <div class=modal-footer>\
+                            <button id=btn-delete-selected-'+y+' type=button class=\'btn btn-danger\'>Delete Selected</button>\
+                            <button data-dismiss=modal type=button class=\'btn btn-primary\'>Submit Selected</button>\
+                        </div>\
+                    </div>\
+                </div>\
+            </div>\
+            <script>\
+                $(\'.table\').DataTable();\
+                $(\'.tm-radio-'+y+'\').on(\'click\', function(event){\
+                    var tds =  new Array();\
+                    var class_name = this.className;\
+                    var row = $(this).parent().closest(\'tr\');\
+                    row.find(\'td\').each (function() {\
+                        var count = $(this).children().length;\
+                        if(count == 0) tds.push($(this).html());\
+                    });\
+                    var tds_string = tds.join(\', \');\
+                    $(\'#\'+class_name).val(tds_string);\
+                });\
+                $(\'.readonly\').on(\'keydown paste\', function(e){e.preventDefault();});\
+                $(\'#btn-delete-selected-'+y+'\').click(function() {\
+                    $(\'.tm-radio-'+y+'\').prop(\'checked\', false);\
+                    $(\'#tm-radio-'+y+'\').val(\'\');\
+                });\
+            </script>'
+        return table_html;
+    }
+
+
+    $("#btn-submit-input").on("click", function(e){ 
+        e.preventDefault();
+        input_label = $('#label').val();
+        input_required = $('input[name=required]:checked').val();
+        input_is_option = $('#input-types').find(':selected').attr('data-is-option');
+        input_type = $('#input-types').val();
+        input_key = $('#key').val();
+        if(input_label==""||input_key=="") {alert("Label or attribute key can't be empty");return;}
+        var keys_length = keys.length; 
+        for(a=0; a<=keys_length; a++){
+            if(input_key==keys[a]) {alert("Attribute key must be unique");return;}
+        }
+
+        input_html = '<div id=card-input-'+y+' data-required='+input_required+' data-key='+input_key+' data-id='+y+' class=card-input><div class=form-group><label>'+input_label+'</label>';
+        input_html2 = input_html;
+        if(input_is_option == 1) {
+            if(input_type=="dropdown"){
+                input_html2 = input_html2 + '<select required class=\'subform-input form-control\' name=input_value['+y+']><option value= >-- Select '+input_label+' --</option>';
+                input_html = input_html + '<select class=\'subform-input form-control\' name=input_value['+y+']>';
+                var i = 0;
+                $('.option').each(function() {
+                    var option =  $(this).val();
+                    if(option!=""){
+                        input_html2 = input_html2 + '<option>'+option+'</option>';
+                        input_html = input_html + '<option>'+option+'</option>';
+                        i++;
+                    }
+                });
+                if(i<2){alert("minimum number of option is 2");return;}
+                input_html2 = input_html2 + '</select>';
+                input_html = input_html + '</select>';
+            }
+            else if(input_type=="radio"||input_type=="checkbox"){
+                var i = 0;
+                if(input_type=="checkbox") {
+                    input_html = input_html+'<div class=check>';
+                    input_html2 = input_html2+'<div class=\'check checkbox-validation\'>';
+                }
+                else {
+                    input_html = input_html+'<div class=check>';
+                    input_html2 = input_html2+'<div class=check>';
+                }
+                $('.option').each(function() {
+                    var option =  $(this).val();
+                    if(option!=""){
+                        //subform belum
+                        if(input_type=="checkbox") {
+                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+y+']['+i+'] value='+option+'>'+option+'</label></div>';
+                            input_html = input_html + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+y+']['+i+'] value='+option+'>'+option+'</label></div>';
+                        }
+                        else {
+                            input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input required type='+input_type+' name=input_value['+y+'] value='+option+'>'+option+'</label></div>';
+                            input_html = input_html + '<div class=form-check><label class=form-check-label><input  type='+input_type+' name=input_value['+y+'] value='+option+'>'+option+'</label></div>';
+                        }
+                        i++;
+                    }
+                });   
+                input_html = input_html+'</div>'; 
+                input_html2 = input_html2 +'</div>';         
+                if(i<2){alert("minimum number of option is 2");return;}
+            }
+            else {alert("input type underconstruction");return;}
+        }
+        
+        //subform belum
+        else if(input_is_option == 2) {
+            var table_html = createTableModal(table_modal_json, y);
+            var placeholder = "\'Click to Set This Input\'";
+            input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'subform-input form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html2 = input_html2 + table_html;
+            input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'subform-input form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html = input_html + table_html
+            table_modal_json = 0;
+        }
+        
+        else if(input_is_option == 3) {
+            var table_html = createIdentifier(table_modal_json, y);
+            var placeholder = "\'Identifier\'";
+            input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';
+            input_html = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+'>';
+            table_modal_json = 0;
+        }
+        else{ 
+            input_html2 = input_html + '<input class=\'subform-input form-control\' type='+input_type+'  placeholder='+input_type+' required>';
+            input_html = input_html + '<input class=\'subform-input form-control\' type='+input_type+'  placeholder='+input_type+'>';
+        }     
+        keys.push(input_key);
+        div_html = input_html + '<input class=subform-input type=hidden value='+input_key+'>' + '</div>';
+        div_html2 = input_html2 + '<input class=subform-input type=hidden value='+input_key+'>' + '</div>';
+        input_html = input_html + '<input class=subform-input type=hidden value='+input_key+'>' + '</div></div>';
+        input_html2 = input_html2 + '<input class=subform-input type=hidden value='+input_key+'>' + '</div></div>';
+        hidden_html = div_html + '<input type="hidden" name="html[]" value="'+input_html+'">';
+        hidden_html2 = div_html2 + '<input type="hidden" name="html[]" value="'+input_html2+'">';
+
+        hidden_html = hidden_html + '<input type="hidden" name="input_key[]" value="'+input_key+'"></div>';
+        hidden_html2 = hidden_html2 + '<input type="hidden" name="input_key[]" value="'+input_key+'"></div>';
+
+        if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
+        else $("#dynamic-form").append(hidden_html); 
+        
+        $('#table-modal-'+y).remove();
+        y++;
+
+        $(".card-input").hover(function() {
+            $(this).addClass('card-input-shadow').css('cursor', 'pointer'); 
+        }, function() {
+            $(this).removeClass('card-input-shadow');
+        });   
+        $(".card-input").click(function() {
+            var card_id = $(this).attr('data-id'); 
+            var card_key = $(this).attr('data-key'); 
+            var card_required = $(this).attr('data-required'); 
+            var card_attr_id = $(this).attr('id');  
+            $('#card-id').val(card_id);            
+            $('#card-key').val(card_key);
+            
+            var isTableModal = 0;
+            var edit_input_type;
+            var edit_input_key;
+            var edit_input_label = $("#"+card_attr_id).find('label').filter(':visible:first').html();
+            var edit_options = [];
+            var first_hidden = true;
+            $("#"+card_attr_id+" :input").each(function(){
+                var input = $(this);
+                if(input.attr('type')!='hidden') {
+                    edit_input_type=input.attr('type');
+                    edit_options.push(input.val());
+                    if(edit_input_type == 'tablemodal'){
+                        isTableModal = 1;
+                    }
+                }
+                else if(first_hidden==true) {
+                    edit_input_key = input.val();
+                    first_hidden = false;
+                }
+            });
+
+            var dropdown_options = [];
+            $("#"+card_attr_id).find('select > option').each(function(){
+                edit_input_type = 'dropdown'
+                var option = $(this);
+                if(option.val()!="")dropdown_options.push(option.val());
+            });
+            if(isTableModal) edit_input_type = 'tablemodal';
+
+            if(card_required == 'Yes') $("#radio-Yes").prop("checked", true);
+            else if (card_required == 'No') $("#radio-No").prop("checked", true);
+            $('#edit-label').val(edit_input_label);
+            $('#edit-key').val(edit_input_key);
+            $('#input-types2').val(edit_input_type);
+            $('#input-types2 option[value='+edit_input_type+']').prop('selected', true);
+
+            $('#input_fields_wrap2').empty();
+            $('#btn-option-add2').empty();
+            function isOption(options){
+                $('#input_fields_wrap2').append('<div><input type="text" name="option[]" value='+options[0]+' placeholder="New Option" class="option2 form-control form-control-sm"><input type="text" name="option[]" value='+options[1]+' placeholder="New Option" class="option2 form-control form-control-sm"></div>');
+                $('#btn-option-add2').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
+                x = options.length-1;
+                options.forEach(myFunction);
+                function myFunction(item, index) {
+                    if(index>1)
+                    $("#input_fields_wrap2").append('<div class="row"><div class="col-md-11 col-sm-10 col-9"><input type="text" value='+item+' name="option[]" placeholder="New Option" class="option2 form-control form-control-sm"></div><a href="#" class="remove_field"><i class="fa fa-times fa-lg"></i></a></div>');
+                }
+
+            }
+            if(isTableModal) {
+                $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
+                $("#json_upload2").change(function(event) {
+                    var reader = new FileReader();
+                    reader.onload = onReaderLoad;
+                    reader.readAsText(event.target.files[0]);
+                });
+                function onReaderLoad(event){
+                    var obj = JSON.parse(event.target.result);
+                    table_modal_json = obj;
+                }
+            }
+            else if(dropdown_options.length > 0) isOption(dropdown_options);
+            else if(edit_options.length > 1) isOption(edit_options);
+            $('#action-modal').modal('show');
+        });   
+
+
+        jQuery.fn.swap = function(b){ 
+            // method from: http://blog.pengoworks.com/index.cfm/2008/9/24/A-quick-and-dirty-swap-method-for-jQuery
+            b = jQuery(b)[0]; 
+            var a = this[0]; 
+            var t = a.parentNode.insertBefore(document.createTextNode(''), a); 
+            b.parentNode.insertBefore(a, b); 
+            t.parentNode.insertBefore(b, t); 
+            t.parentNode.removeChild(t); 
+            return this; 
+        };
+
+        
+        $('.select2').select2({ width: '100%' });
+        $( ".card-input" ).draggable({ revert: true, helper: "clone" });
+
+        $( ".card-input" ).droppable({
+            accept: ".card-input",
+            activeClass: "ui-state-hover",
+            hoverClass: "ui-state-active",
+            drop: function( event, ui ) {
+
+                var draggable = ui.draggable, droppable = $(this),
+                    dragPos = draggable.position(), dropPos = droppable.position();
+                
+                draggable.css({
+                    left: dropPos.left+'px',
+                    top: dropPos.top+'px'
+                });
+
+                droppable.css({
+                    left: dragPos.left+'px',
+                    top: dragPos.top+'px'
+                });
+                draggable.swap(droppable);
+            }
+        });      
+        $('#add-modal').modal('toggle');
+    });    
+
+    $("#btn-delete").click(function() {
+        var card_id = $('#card-id').val();
+        var card_key = $('#card-key').val();
+        var keys_length = keys.length; 
+        $('#card-input-'+card_id).remove();
+        for(a=0; a<=keys_length; a++){    
+            var index = keys.indexOf(card_key);
+            if (index > -1) keys[index] = null;
+        }
+        $('#action-modal').modal('toggle');
+    });  
+
+
+    $("#btn-add").click(function() {
+        $('#label').val('');
+        $('#key').val('');
+        $('#input-types').val('text');
+        $('#input-types option[value=text]').prop('selected', true);
+        $("#radio-Yes-add").prop("checked", true);
+        $('#input_fields_wrap').empty();
+        $('#btn-option-add').empty();
+    });  
+});
