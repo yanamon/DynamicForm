@@ -28,6 +28,11 @@ class SubFormController extends Controller
         return view('sub-form-show-all', compact('sub_forms','form_id','project_id'));
     }
 
+    public function show($id){
+        $sub_form = SubForm::with('SubFormInput')->find($id);
+        return view('sub-form-show', compact('sub_form'));
+    }
+
     public function create($form_id)
     {
         $inputTypes = InputType::get();
@@ -120,4 +125,19 @@ class SubFormController extends Controller
         }
         return response()->json($row);
     }
+
+
+    public function destroy($id)
+    {
+        $sub_form = SubForm::find($id);
+        $form_id = $sub_form->form_id;
+        $form_input_id = $sub_form->form_input_id;
+
+        $sub_form_inputs = SubFormInput::where('sub_form_id', $id)->delete();
+        $sub_form = SubForm::find($id)->delete();
+        $form_input = FormInput::find($form_input_id)->delete();
+
+        return redirect('form/'.$form_id.'/sub-forms');
+    }
+
 }

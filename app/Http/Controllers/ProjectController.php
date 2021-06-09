@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Storage;
 use App\Project;
 use App\Form;
 use App\FormInput;
@@ -52,6 +53,11 @@ class ProjectController extends Controller
             'dropbox_access_token' => 'required',
             'form_type' => 'required'
         ]);
+
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        if(Storage::disk('public')->exists($user_path) == 0){
+            Storage::disk('public')->makeDirectory($user_path);
+        }
                 
         $project = new Project();
         $project->project_name = $request->project_name;
@@ -61,6 +67,9 @@ class ProjectController extends Controller
         $project->form_type = $request->form_type;
         $project->user_id = Auth::user()->id;
 
+        
+        $project_path = $user_path.$request->project_name;
+        Storage::disk('public')->makeDirectory($project_path);
         
         $project->save();
         return redirect('all-project/');

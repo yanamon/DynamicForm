@@ -22,6 +22,11 @@ Route::get('/change-menu-index/{id}/{change_direction}', 'FormController@change_
 Route::get('/form/{form_id}/sub-forms', 'SubFormController@index');
 Route::get('/create-sub-form/{id}', 'SubFormController@create');
 Route::post('/store-sub-form', 'SubFormController@store');
+Route::post('/delete-sub-form/{id}', 'SubFormController@destroy');
+
+Route::get('/edit-sub-form/{id}', 'SubFormController@edit');
+Route::post('/update-sub-form', 'FormController@update');
+Route::get('/show-sub-form/{id}', 'SubFormController@show');
 
 
 Route::get('/export-project/{id}', 'FormController@exportProject');

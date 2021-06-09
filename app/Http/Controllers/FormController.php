@@ -83,6 +83,7 @@ class FormController extends Controller
             'html' => 'required',
             'form_name' => 'required|alpha_dash'
         ]);
+
         $project = Project::find($request->project_id);
 
         $last_index = Form::where("project_id", $project->id)->max('menu_index');
@@ -127,11 +128,26 @@ class FormController extends Controller
         //     $form_input->form_id = $last_form_id;
         //     $form_input->save();
         // }
+        
+        
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($project_path);
+        }
+        $form_path = $project_path.$request->form_name;
+        Storage::disk('public')->makeDirectory($form_path);
+        
+
         foreach($request->html as  $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
             $form_input->input_key = $request->input_key[$i];
             $form_input->form_id = $last_form_id;
+
+            $tm_name = $request->input_key[$i].".json";
+            $tm_json = $request->tm_json[$request->input_key[$i]];
+            Storage::disk('public')->put($form_path."/".$tm_name, $tm_json);
             $form_input->save();
         }
         return redirect('project/'.$request->project_id.'/forms');
@@ -239,6 +255,11 @@ class FormController extends Controller
         File::copyDirectory($storage_path1 , $storage_path4);
           
         foreach($forms as $i => $form){
+            $tm_path_from = storage_path("app/public/table-modal/".$share_path."/".$form->form_name);
+            $tm_path_to_1 = storage_path('app/public/' . $project_path."/dropbox/tablemodal/".$form->form_name);
+            $tm_path_to_2 = storage_path('app/public/' . $share_path."/dropbox/tablemodal/".$form->form_name);
+            File::copyDirectory($tm_path_from , $tm_path_to_1);
+            File::copyDirectory($tm_path_from , $tm_path_to_2);
             $this->export($form->id, $share_path, $project_path, $i);
         }
         if(!empty($request->export_sql)){
@@ -489,8 +510,7 @@ class FormController extends Controller
         foreach($subform_inputs as $subform_input){
             $html = $html.$subform_input->html;
         }
-
-        //lasttttttttttt 
+        
         $n = $subform->html_key;
 
         $html = $html.'    <div class="form-group card-title" style="margin-bottom:30px;"> ';
@@ -569,6 +589,7 @@ class FormController extends Controller
 
         if(!empty($request->auth_file)) $php = $php.    '$auth_file = "dropbox/auth/'.$request->form_name.'/auth.json";  ';
         
+        $php = $php.    '$folder_name = "'.$request->form_name.'";  ';
         $php = $php.    '$app_key = "'.$request->app_key.'";  ';
         $php = $php.    '$app_secret = "'.$request->app_secret.'"; ';
         $php = $php.    '$app = new DropboxApp($app_key, $app_secret); ';

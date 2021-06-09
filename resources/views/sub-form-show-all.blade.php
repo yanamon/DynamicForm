@@ -32,10 +32,10 @@
                                     </td> -->
                                     <td>
                                         <center>	
-                                            <a href="/show-sub_form/{{$sub_form->id}}" title="Show Sub form">
+                                            <a href="/show-sub-form/{{$sub_form->id}}" title="Show Sub form">
                                                 <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
                                             </a>     
-                                            <a href="/edit-sub_form/{{$sub_form->id}}" title="Edit Sub Form">
+                                            <a href="/edit-sub-form/{{$sub_form->id}}" title="Edit Sub Form">
                                                 <i class="fa fa-edit" style="color:#10707f; font-size:20px;"></i>
                                             </a> 
                                             <a data-id="{{ $sub_form->id }}" title="Delete Sub form" href="#" class="hapus" data-toggle="modal" data-target="#modal-hapus">

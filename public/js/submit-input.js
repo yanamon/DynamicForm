@@ -20,7 +20,7 @@ $(document).ready(function() {
         return identifier_html;
     }
 
-    function createTableModal(json_obj, y){
+    function createTableModal(json_obj, y, input_key){
         var i;
         var id_name;
         
@@ -39,30 +39,43 @@ $(document).ready(function() {
                             <div class=table-responsive>\
                                 <table id=example class=\'table table-bordered\'>\
                                     <thead class=thead-dark>\
-                                        <th></th>';
-                                        $i = 0;
-                                        for(key in firstItem) {
-                                            if($i>0)table_html = table_html + '<th>'+key+'</th>';
-                                            $i++;
-                                        }
-        table_html = table_html +  '</thead>\
+                                        <?php\
+                                            $table_modal = \''+input_key+'\';\
+                                            $dir = \'dropbox/tablemodal/\'.$folder_name.\'/\'.$table_modal.\'.json\';\
+                                            $json = json_decode(file_get_contents($dir), true);\
+                                            foreach(array_keys($json[0]) as $column){\
+                                        ?>\
+                                            <th><?php echo($column); ?></th>\
+                                        <?php\
+                                            }\
+                                        ?>\
+                                    </thead>\
                                     <tbody>\
-                                        <tr>';
-                                            i = 0
-                                            $.each(json_obj, function(key1, items) {
-                                                $.each(items, function(key2, item) {
-                                                    if(i==0) {
-                                                        id_name = key2;
-                                                        if(id_name == key2) table_html = table_html + '<td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
-                                                    }
-                                                    else {
-                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
-                                                        else table_html = table_html + '<td>'+item+'</td>';
-                                                    }
-                                                    i++;
-                                                });
-                                            });
-        table_html = table_html +       '</tr>\
+                                        <?php \
+                                            foreach($json as $rows){\
+                                                $i=0;\
+                                        ?>\
+                                        <tr>\
+                                            <?php \
+                                                foreach($rows as $row){\
+                                                    if($i == 0){\
+                                            ?>\
+                                                    <td>\
+                                                        <center>\
+                                                            <input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value=<?php echo($row) ?>>\
+                                                        </center>\
+                                                    </td>\
+                                            <?php   } else { ?>\
+                                                    <td><?php echo($row); ?></td>\
+                                            <?php\
+                                                    }\
+                                                    $i++;\
+                                                }\
+                                            ?>\
+                                        </tr>\
+                                        <?php \
+                                            }\
+                                        ?>\
                                     </tbody>\
                                 </table>\
                             </div>\
@@ -161,12 +174,14 @@ $(document).ready(function() {
         }
         
         else if(input_is_option == 2) {
-            var table_html = createTableModal(table_modal_json, y);
+            var table_html = createTableModal(table_modal_json, y, input_key);
             var placeholder = "\'Click to Set This Input\'";
+            var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(table_modal_json)+'\'/>';
+
             input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
             input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
-            input_html = input_html + table_html
+            input_html = input_html + table_html;
             table_modal_json = 0;
         }
         
@@ -194,6 +209,8 @@ $(document).ready(function() {
 
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
+
+        if(input_is_option == 2) $('#card-input-'+y).append(tm_json_input);
         
         $('#table-modal-'+y).remove();
         y++;

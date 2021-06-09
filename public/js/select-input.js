@@ -17,7 +17,7 @@ $(document).ready(function() {
             $('#btn-option-add').append('<button class="btn btn-primary add_field_button">Add More Option</button>');
         }
         else if($('option:selected', this).attr('data-is-option') >= 2){
-            $('#btn-option-add').append('<input type="file" id="json_upload" name="json_upload"  />');
+            $('#btn-option-add').append('<input type="file" id="json_upload" name="json_upload"/>');
             $("#json_upload").change(function(event) {
                 var reader = new FileReader();
                 reader.onload = onReaderLoad;
@@ -49,7 +49,7 @@ $(document).ready(function() {
                 var obj = JSON.parse(event.target.result);
                 table_modal_json = obj;
             }
-        }
+        } 
     });
     
     $(add_button).on("click", ".add_field_button", function(e){ //on add input button click
