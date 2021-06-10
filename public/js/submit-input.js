@@ -176,7 +176,8 @@ $(document).ready(function() {
         else if(input_is_option == 2) {
             var table_html = createTableModal(table_modal_json, y, input_key);
             var placeholder = "\'Click to Set This Input\'";
-            var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(table_modal_json)+'\'/>';
+            tm_json[input_key] = table_modal_json;
+            var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(tm_json[input_key])+'\'/>';
 
             input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+y+' id=tm-radio-'+y+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
@@ -210,7 +211,10 @@ $(document).ready(function() {
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
 
-        if(input_is_option == 2) $('#card-input-'+y).append(tm_json_input);
+        if(input_is_option == 2) {
+            $('#card-input-'+y).append(tm_json_input);
+            var json_upload_id = "json_upload_"+y;
+        }
         
         $('#table-modal-'+y).remove();
         y++;
@@ -278,8 +282,10 @@ $(document).ready(function() {
 
             }
             if(isTableModal) {
-                $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
-                $("#json_upload2").change(function(event) {
+                
+                $('#btn-option-add2').append('<div><label>Table Modal File : '+ input_key +'.json</label></div>');
+                $('#btn-option-add2').append('Change File : <input type="file" id="'+ json_upload_id +'" name="'+json_upload_id+ '"  />');
+                $("#"+json_upload_id).change(function(event) {
                     var reader = new FileReader();
                     reader.onload = onReaderLoad;
                     reader.readAsText(event.target.files[0]);

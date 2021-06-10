@@ -43,7 +43,7 @@
         <script src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script> 
 
         
-        <script> var x = 1; var y = 0; var keys = []; var table_modal_json = 0;</script>
+        <script> var x = 1; var y = 0; var keys = []; var table_modal_json = 0; var tm_json=[];</script>
         <script src="{{asset('/js/select-input.js')}}"></script>
         <script src="{{asset('/js/submit-input.js')}}"></script>
         <script src="{{asset('/js/update-input.js')}}"></script>
