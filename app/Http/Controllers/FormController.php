@@ -136,7 +136,9 @@ class FormController extends Controller
             Storage::disk('public')->makeDirectory($project_path);
         }
         $form_path = $project_path.$request->form_name;
-        Storage::disk('public')->makeDirectory($form_path);
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($form_path);
+        }
         
 
         foreach($request->html as  $i => $html){
@@ -196,11 +198,30 @@ class FormController extends Controller
         //     $form_input->form_id = $request->id_edit;
         //     $form_input->save();
         // }
+
+        
+        $project = Project::find($form->project_id);
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($project_path);
+        }
+        $form_path = $project_path.$request->form_name;
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($form_path);
+        }
+
         foreach($request->html as $i => $html){
             $form_input = new FormInput();
             $form_input->html = $html;
             $form_input->input_key = $request->input_key[$i];
             $form_input->form_id = $request->id_edit;
+
+            $tm_name = $request->input_key[$i].".json";
+            if(isset($request->tm_json[$request->input_key[$i]])){
+                $tm_json = $request->tm_json[$request->input_key[$i]];
+                Storage::disk('public')->put($form_path."/".$tm_name, $tm_json);
+            }
             $form_input->save();
         }
         return redirect('project/'.$request->project_id.'/forms');
@@ -956,7 +977,20 @@ class FormController extends Controller
         $inputTypes = InputType::get();
         $form = Form::with('formInput')->find($id);
         $project_id = $form->project_id;
-        return view('form-edit', compact('form','inputTypes','project_id'));
+        $project = Project::find($project_id);
+        $user_id = Auth::user()->id;
+        $tm_jsons= array();
+
+        $form_inputs = FormInput::where('form_id', $id)->get();
+        foreach($form_inputs as $form_input){
+            $tm_json_path = 'table-modal/'.$user_id.'/'.$project->project_name.'/'.$form->form_name.'/'.$form_input->input_key.".json";
+            if (Storage::disk("public")->exists($tm_json_path)) {
+                $tm_json = Storage::disk("public")->get($tm_json_path);
+            }
+            $tm_jsons[$form_input->input_key] = $tm_json;
+        }
+
+        return view('form-edit', compact('form','inputTypes','project_id','tm_jsons'));
     }
 
 

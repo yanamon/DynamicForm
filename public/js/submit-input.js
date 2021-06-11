@@ -211,6 +211,7 @@ $(document).ready(function() {
         if(input_required == 'Yes')  $("#dynamic-form").append(hidden_html2); 
         else $("#dynamic-form").append(hidden_html); 
 
+        //new tablemodal
         if(input_is_option == 2) {
             $('#card-input-'+y).append(tm_json_input);
             var json_upload_id = "json_upload_"+y;
@@ -283,7 +284,7 @@ $(document).ready(function() {
             }
             if(isTableModal) {
                 
-                $('#btn-option-add2').append('<div><label>Table Modal File : '+ input_key +'.json</label></div>');
+                $('#btn-option-add2').append('<div id="label_'+json_upload_id+'"><label><span>Table Modal File : '+ edit_input_key +'.json</span></label></div>');
                 $('#btn-option-add2').append('Change File : <input type="file" id="'+ json_upload_id +'" name="'+json_upload_id+ '"  />');
                 $("#"+json_upload_id).change(function(event) {
                     var reader = new FileReader();

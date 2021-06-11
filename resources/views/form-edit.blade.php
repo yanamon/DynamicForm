@@ -94,6 +94,7 @@
                         {!!$input->html!!}
                         <input class="temp-html" value="{{$input->html}}" type="hidden">
                         <input class="temp-input-key" value="{{$input->input_key}}" type="hidden">
+                        <input class="temp-tm-json" id="{{$input->input_key}}" value="{{ $tm_jsons[$input->input_key] }}" type="hidden">
                     @endforeach 
                 </form>
             </div>
@@ -213,6 +214,7 @@
     $(document).ready(function() {
         var temp_html = [];
         var temp_input_key = [];
+        var temp_tm_json = [];
         $('.temp-html').each(function() {
             var html = '<input type="hidden" name="html[]" value="'+$(this).val()+'">';
             temp_html.push(html);
@@ -225,15 +227,28 @@
             $(this).remove();
         });
 
+
         $('.card-input').each(function(i) {
             var id = $(this).attr('data-id');
             if(id>y) y = id;
             var key = $(this).attr('data-key');
             keys[id]=key;
+
+            
             $(this).append(temp_html[i]);
             $(this).append(temp_input_key[i]);
+            
+            var card_input = $(this);
+            $('.temp-tm-json').each(function() {
+                if(key == $(this).attr('id')){
+                    var tm_json = '<input type="hidden" id="tm_json_'+$(this).attr("id")+'" name="tm_json['+$(this).attr("id")+']" value="">';
+                    card_input.append(tm_json);
+                    var a = $('#tm_json_'+ $(this).attr("id")).val($(this).val());
+                }
+            });
         })
 
+        $('.temp-tm-json').remove();
         y++;
     });
 </script>
@@ -303,8 +318,10 @@
             }
         }
         if(isTableModal) {
-            $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
-            $("#json_upload2").change(function(event) {
+            var json_upload_id = "json_upload_"+card_id;
+            $('#btn-option-add2').append('<div><label>Table Modal File : '+ edit_input_key +'.json</label></div>');
+            $('#btn-option-add2').append('Change File : <input type="file" id="'+ json_upload_id +'" name="'+json_upload_id+ '"  />');
+            $("#"+json_upload_id).change(function(event) {
                 var reader = new FileReader();
                 reader.onload = onReaderLoad;
                 reader.readAsText(event.target.files[0]);
