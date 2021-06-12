@@ -64,7 +64,7 @@ class SubFormController extends Controller
         $html2 = $html2.'        <input type=hidden name=input_label['.$last_form_input.'][count] value='.$count.'> ';
         $html2 = $html2.'        <label>Anggota Keluarga</label> ';
         $html2 = $html2.'        <div class=table-responsive> ';
-        $html2 = $html2.'            <table id=example class="table table-bordered"> ';
+        $html2 = $html2."            <table id=example class='table table-bordered'> ";
         $html2 = $html2.'                <thead class=thead-dark> ';
         foreach($request->html as  $i => $html){
             $html2 = $html2.'                    <th>'.$request->input_key[$i].'</th> ';
@@ -75,7 +75,7 @@ class SubFormController extends Controller
         $html2 = $html2.'                </tbody> ';
         $html2 = $html2.'            </table> ';
         $html2 = $html2.'        </div> ';
-        $html2 = $html2.'        <button type="button"><a id="tab-'.$request->sub_form_name.'">Tambah '.$request->sub_form_name.'</a></button> ';
+        $html2 = $html2.'        <button type=button id=tab-'.$request->sub_form_name.'><a>Tambah '.$request->sub_form_name.'</a></button> ';
         $html2 = $html2.'    </div> ';
         $html2 = $html2.'</div>';
 

@@ -94,7 +94,9 @@
                         {!!$input->html!!}
                         <input class="temp-html" value="{{$input->html}}" type="hidden">
                         <input class="temp-input-key" value="{{$input->input_key}}" type="hidden">
+                        @if(isset($tm_jsons[$input->input_key]))
                         <input class="temp-tm-json" id="{{$input->input_key}}" value="{{ $tm_jsons[$input->input_key] }}" type="hidden">
+                        @endif
                     @endforeach 
                 </form>
             </div>

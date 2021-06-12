@@ -536,7 +536,7 @@ class FormController extends Controller
 
         $html = $html.'    <div class="form-group card-title" style="margin-bottom:30px;"> ';
         $html = $html.'        <button id=btn-submit-subform-'.$n.' class="col-md-12 btn btn-success btn-block">Submit</button> ';
-        $html = $html.'        <button type="button" class="col-md-12 btn btn-info btn-block"><a class="tab-'.$request->form_name.'">Back to Main Form</a></button> ';
+        $html = $html.'        <button type="button" class="col-md-12 btn btn-info btn-block tab-'.$request->form_name.'"><a>Back to Main Form</a></button> ';
         $html = $html.'        <script> ';
         $html = $html.'            var subform_'.$n.'_data = 0;  ';
         $html = $html.'            $("#btn-submit-subform-'.$n.'").click(function() { ';
@@ -553,7 +553,7 @@ class FormController extends Controller
         $html = $html.'                    } ';
         $html = $html.'                }); ';
         $html = $html.'                var delete_row_id = "delete-row-'.$n.'"+subform_'.$n.'_data; ';
-        $html = $html.'                $("#"+subform_id).append(\'<td><center><a href="javascript:void(0)" id="+delete_row_id+" data-tr="+subform_id+"><i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i></a></center></td>\'); ';
+        $html = $html.'                $("#"+subform_id).append(\'<td><center><a href="javascript:void(0)" id=\'+delete_row_id+\' data-tr=\'+subform_id+\'><i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i></a></center></td>\'); ';
         $html = $html.'                $("#"+delete_row_id).click(function(){ ';
         $html = $html.'                    var tr_id = $(this).attr("data-tr"); ';
         $html = $html.'                    $("#"+tr_id).remove(); ';
@@ -981,13 +981,14 @@ class FormController extends Controller
         $user_id = Auth::user()->id;
         $tm_jsons= array();
 
+
         $form_inputs = FormInput::where('form_id', $id)->get();
         foreach($form_inputs as $form_input){
             $tm_json_path = 'table-modal/'.$user_id.'/'.$project->project_name.'/'.$form->form_name.'/'.$form_input->input_key.".json";
             if (Storage::disk("public")->exists($tm_json_path)) {
                 $tm_json = Storage::disk("public")->get($tm_json_path);
+                $tm_jsons[$form_input->input_key] = $tm_json;
             }
-            $tm_jsons[$form_input->input_key] = $tm_json;
         }
 
         return view('form-edit', compact('form','inputTypes','project_id','tm_jsons'));
