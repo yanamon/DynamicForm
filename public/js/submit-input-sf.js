@@ -133,16 +133,16 @@ $(document).ready(function() {
                 var i = 0;
                 if(input_type=="checkbox") {
                     input_html = input_html+'<div class=check>';
-                    input_html2 = input_html2+'<div class=\'check checkbox-validation\'>';
+                    input_html2 = input_html2+'<div class=\'check checkbox-validation subform-input\'>';
                 }
                 else {
                     input_html = input_html+'<div class=check>';
-                    input_html2 = input_html2+'<div class=check>';
+                    input_html2 = input_html2+'<div class=\'check radio-validation  subform-input\'>';
                 }
                 $('.option').each(function() {
                     var option =  $(this).val();
                     if(option!=""){
-                        //subform belum
+                        //subform sudah
                         if(input_type=="checkbox") {
                             input_html2 = input_html2 + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+y+']['+i+'] value='+option+'>'+option+'</label></div>';
                             input_html = input_html + '<div class=form-check><label class=form-check-label><input type='+input_type+' name=input_value['+y+']['+i+'] value='+option+'>'+option+'</label></div>';
@@ -178,6 +178,11 @@ $(document).ready(function() {
             input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+' required>';
             input_html = input_html + '<input class=form-control type='+input_type+' name=input_value['+y+'] placeholder='+input_type+'>';
             table_modal_json = 0;
+        }
+        
+        else if(input_type == 'file'){ 
+            input_html2 = input_html + '<input class=\'subform-input form-control\' type='+input_type+' name=' + input_key + ' id=' + input_key + ' placeholder='+input_type+' required>';
+            input_html = input_html +  '<input class=\'subform-input form-control\' type='+input_type+' name=' + input_key + ' id=' + input_key + ' placeholder='+input_type+'>';
         }
         else{ 
             input_html2 = input_html + '<input class=\'subform-input form-control\' type='+input_type+'  placeholder='+input_type+' required>';

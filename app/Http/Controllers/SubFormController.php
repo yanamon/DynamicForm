@@ -71,7 +71,7 @@ class SubFormController extends Controller
         }
         $html2 = $html2.'                    <th>action</th> ';
         $html2 = $html2.'                </thead> ';
-        $html2 = $html2.'                <tbody>  ';
+        $html2 = $html2.'                <tbody id='.$request->sub_form_name.'>  ';
         $html2 = $html2.'                </tbody> ';
         $html2 = $html2.'            </table> ';
         $html2 = $html2.'        </div> ';
