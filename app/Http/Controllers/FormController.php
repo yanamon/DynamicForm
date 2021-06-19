@@ -136,7 +136,7 @@ class FormController extends Controller
             Storage::disk('public')->makeDirectory($project_path);
         }
         $form_path = $project_path.$request->form_name;
-        if(Storage::disk('public')->exists($project_path) == 0){
+        if(Storage::disk('public')->exists($form_path) == 0){
             Storage::disk('public')->makeDirectory($form_path);
         }
         
@@ -207,7 +207,7 @@ class FormController extends Controller
             Storage::disk('public')->makeDirectory($project_path);
         }
         $form_path = $project_path.$request->form_name;
-        if(Storage::disk('public')->exists($project_path) == 0){
+        if(Storage::disk('public')->exists($form_path) == 0){
             Storage::disk('public')->makeDirectory($form_path);
         }
 
@@ -440,7 +440,6 @@ class FormController extends Controller
             $htmls = $htmls.' <li><a href="'.$link.'">'.$form->form_name.'</a></li> ';
         }
 
-
         $htmls = $htmls.'         </ul> ';
         $htmls = $htmls.'         <ul class="list-unstyled CTAs"> ';
         $htmls = $htmls.'            <li> ';
@@ -520,6 +519,7 @@ class FormController extends Controller
     public function createSubForm($request, $subform){
         
         $html = '';
+        $html = $html.'<?php $sub_folder_name = \''. $subform->sub_form_name .'\'; ?> ';
         $html = $html.'<div role="tabpanel" class="tab-pane subform" id=subform-'.$subform->sub_form_name.'> ';
         $html = $html.'    <div class="form-group card-title"> ';
         $html = $html.'        <h3>'.$subform->title.'</h3> ';
@@ -1070,6 +1070,11 @@ class FormController extends Controller
         $php = $php.'            element.setCustomValidity(""); ';
         $php = $php.'        }); ';
         $php = $php.'    }); ';
+        $php = $php.'</script> ';
+
+        
+        $php = $php.'<script> ';
+        $php = $php.'$(\'.is-data-table\').DataTable(); ';
         $php = $php.'</script> ';
 
         return $php;

@@ -10,81 +10,103 @@ $(document).ready(function() {
     var hidden_html2;
     var input_key;
 
-    function createTableModal(json_obj, y){
+    
+    function createTableModal(json_obj, y, input_key){
         var i;
         var id_name;
         
         var table_html = "";
         var firstItem = json_obj[0];
         table_html = table_html +        
-            '<div class=modal id=table-modal-'+y+'>';
+            '<div class=modal>';
         table_html = table_html +  
                 '<div class=\'modal-dialog modal-xl modal-dialog-scrollable\'>\
                     <div class=modal-content>\
                         <div class=modal-header>\
                             <h4 class=modal-title>Select Data</h4>\
-                            <button type=button class=close data-dismiss=modal>&times;</button>\
+                            <button type=button class=\'close tm-modal-close\' data-dismiss=modal>&times;</button>\
                         </div>\
                         <div class=modal-body>\
                             <div class=table-responsive>\
-                                <table id=example class=table>\
+                                <table id=example class=\'table table-bordered is-data-table\'>\
                                     <thead class=thead-dark>\
-                                        <th></th>';
-                                        $i = 0;
-                                        for(key in firstItem) {
-                                            if($i>0)table_html = table_html + '<th>'+key+'</th>';
-                                            $i++;
-                                        }
-        table_html = table_html +  '</thead>\
-                                    <tbody>\
-                                        <tr>';
-                                            i = 0
-                                            $.each(json_obj, function(key1, items) {
-                                                $.each(items, function(key2, item) {
-                                                    if(i==0) {
-                                                        id_name = key2;
-                                                        if(id_name == key2) table_html = table_html + '<td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
-                                                    }
-                                                    else {
-                                                        if(id_name == key2) table_html = table_html + '</tr><tr><td><center><input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value='+item+'></center></td>';
-                                                        else table_html = table_html + '<td>'+item+'</td>';
-                                                    }
-                                                    i++;
-                                                });
-                                            });
-        table_html = table_html +       '</tr>\
+                                        <?php\
+                                            $table_modal = \''+input_key+'\';\
+                                            $dir = \'dropbox/tablemodal/\'.$folder_name.\'/\'.$sub_folder_name.\'/\'.$table_modal.\'.json\';\
+                                            $json = json_decode(file_get_contents($dir), true);\
+                                            foreach(array_keys($json[0]) as $column){\
+                                        ?>\
+                                            <th><?php echo($column); ?></th>\
+                                        <?php\
+                                            }\
+                                        ?>\
+                                    </thead>\
+                                    <tbody class=\'radio-validation subform-input\'>\
+                                        <?php \
+                                            foreach($json as $rows){\
+                                                $i=0;\
+                                        ?>\
+                                        <tr>\
+                                            <?php \
+                                                foreach($rows as $row){\
+                                                    if($i == 0){\
+                                            ?>\
+                                                    <td>\
+                                                        <center>\
+                                                            <input class=\'tm-radio-input\' type=radio value=<?php echo($row) ?>>\
+                                                        </center>\
+                                                    </td>\
+                                            <?php   } else { ?>\
+                                                    <td><?php echo($row);?></td>\
+                                            <?php\
+                                                    }\
+                                                    $i++;\
+                                                }\
+                                            ?>\
+                                        </tr>\
+                                        <?php \
+                                            }\
+                                        ?>\
                                     </tbody>\
                                 </table>\
                             </div>\
                         </div>\
                         <div class=modal-footer>\
-                            <button id=btn-delete-selected-'+y+' type=button class=\'btn btn-danger\'>Delete Selected</button>\
-                            <button data-dismiss=modal type=button class=\'btn btn-primary\'>Submit Selected</button>\
+                            <button type=button class=\'tm-radio-delete btn btn-danger\'>Delete Selected</button>\
+                            <button data-dismiss=modal type=button class=\'tm-modal-close btn btn-primary\'>Submit Selected</button>\
                         </div>\
                     </div>\
                 </div>\
             </div>\
             <script>\
-                $(\'.table\').DataTable();\
-                $(\'.tm-radio-'+y+'\').on(\'click\', function(event){\
-                    var tds =  new Array();\
+                $(\'.tm-modal-toggler\').click(function(){\
+                    $(this).parent().find(\'.modal\').modal();\
+                });\
+                $(\'.tm-modal-close\').click(function(){\
+                    $(this).parent().parent().parent().parent().modal(\'hide\');\
+                });\
+                $(\'.tm-radio-input\').click(function(){\
+                    var tds = new Array();\
                     var class_name = this.className;\
                     var row = $(this).parent().closest(\'tr\');\
-                    row.find(\'td\').each (function() {\
+                    row.find(\'td\').each(function() {\
                         var count = $(this).children().length;\
                         if(count == 0) tds.push($(this).html());\
                     });\
                     var tds_string = tds.join(\', \');\
-                    $(\'#\'+class_name).val(tds_string);\
+                    $(this).parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().find(\'.tm-modal-toggler\').val(tds_string);\
                 });\
-                $(\'.readonly\').on(\'keydown paste\', function(e){e.preventDefault();});\
-                $(\'#btn-delete-selected-'+y+'\').click(function() {\
-                    $(\'.tm-radio-'+y+'\').prop(\'checked\', false);\
-                    $(\'#tm-radio-'+y+'\').val(\'\');\
+                $(\'.tm-radio-delete\').click(function(){\
+                    $(this).parent().parent().find(\'.tm-radio-input\').prop(\'checked\', false);\
+                    $(this).parent().parent().parent().parent().parent().find(\'.tm-modal-toggler\').val(\'\');\
                 });\
-            </script>'
+                $(\'.readonly\').on(\'keydown paste\', function(e) {\
+                    $(this).preventDefault();\
+                });\
+            </script>';
         return table_html;
     }
+
 
 
     $("#btn-edit").on("click", function(e){ 
@@ -163,8 +185,14 @@ $(document).ready(function() {
         }
         
         else if(input_is_option == 2) {
-            var table_html = createTableModal(table_modal_json, card_id);
+            var table_html = createTableModal(table_modal_json, card_id, input_key);
             var placeholder = "\'Click to Set This Input\'";
+            
+            if(table_modal_json!=0) tm_json[input_key] = table_modal_json;
+            else tm_json[input_key] = tm_json[keys[card_id]];
+
+            var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(tm_json[input_key])+'\'/>';
+
             input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
             input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
@@ -201,7 +229,8 @@ $(document).ready(function() {
             $('#card-input-'+card_id).append(hidden_html);  
             $('#card-input-'+card_id).attr('data-required', input_required);
         }
-
+        
+        if(input_is_option == 2) $('#card-input-'+card_id).append(tm_json_input);
         $('#table-modal-'+card_id).remove(); 
         $('.select2').select2({ width: '100%' });
         $('#action-modal').modal('toggle');

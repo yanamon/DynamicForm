@@ -8,6 +8,8 @@ use App\Form;
 use App\FormInput;
 use App\Project;
 use App\User;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 use Illuminate\Http\Request;
 
@@ -49,6 +51,7 @@ class SubFormController extends Controller
             'sub_form_name' => 'required|alpha_dash'
         ]);
         $form = Form::find($request->form_id);
+        $project = Project::find($form->project_id);
         $last_form_input = SubForm::where('form_id', $request->form_id)->max('html_key');
         if($last_form_input==null) $last_form_input = 1000;
         else $last_form_input++;
@@ -79,6 +82,20 @@ class SubFormController extends Controller
         $html2 = $html2.'    </div> ';
         $html2 = $html2.'</div>';
 
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($project_path);
+        }
+        $form_path = $project_path.$form->form_name.'/';
+        if(Storage::disk('public')->exists($form_path) == 0){
+            Storage::disk('public')->makeDirectory($form_path);
+        }
+        $sub_form_path = $form_path.$request->sub_form_name;
+        if(Storage::disk('public')->exists($sub_form_path) == 0){
+            Storage::disk('public')->makeDirectory($sub_form_path);
+        }
+
         //INSERT FORM INPUT
         $form_input = new FormInput();
         $form_input->html = $html2;
@@ -103,6 +120,10 @@ class SubFormController extends Controller
             $sub_form_input->html = $html;
             $sub_form_input->input_key = $request->input_key[$i];
             $sub_form_input->sub_form_id = $last_sub_form_id;
+
+            $tm_name = $request->input_key[$i].".json";
+            $tm_json = $request->tm_json[$request->input_key[$i]];
+            Storage::disk('public')->put($sub_form_path."/".$tm_name, $tm_json);
             $sub_form_input->save();
         }
 

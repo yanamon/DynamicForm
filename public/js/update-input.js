@@ -17,17 +17,17 @@ $(document).ready(function() {
         var table_html = "";
         var firstItem = json_obj[0];
         table_html = table_html +        
-            '<div class=modal id=table-modal-'+y+'>';
+            '<div class=modal>';
         table_html = table_html +  
                 '<div class=\'modal-dialog modal-xl modal-dialog-scrollable\'>\
                     <div class=modal-content>\
                         <div class=modal-header>\
                             <h4 class=modal-title>Select Data</h4>\
-                            <button type=button class=close data-dismiss=modal>&times;</button>\
+                            <button type=button class=\'close tm-modal-close\' data-dismiss=modal>&times;</button>\
                         </div>\
                         <div class=modal-body>\
                             <div class=table-responsive>\
-                                <table id=example class=\'table table-bordered\'>\
+                                <table id=example class=\'table table-bordered is-data-table\'>\
                                     <thead class=thead-dark>\
                                         <?php\
                                             $table_modal = \''+input_key+'\';\
@@ -52,11 +52,11 @@ $(document).ready(function() {
                                             ?>\
                                                     <td>\
                                                         <center>\
-                                                            <input class=tm-radio-'+y+' type=radio name=input_value['+y+'] value=<?php echo($row) ?>>\
+                                                            <input class=tm-radio-input type=radio name=input_value['+y+'] value=<?php echo($row) ?>>\
                                                         </center>\
                                                     </td>\
                                             <?php   } else { ?>\
-                                                    <td><?php echo($row); ?></td>\
+                                                    <td><?php echo($row);?></td>\
                                             <?php\
                                                     }\
                                                     $i++;\
@@ -71,33 +71,41 @@ $(document).ready(function() {
                             </div>\
                         </div>\
                         <div class=modal-footer>\
-                            <button id=btn-delete-selected-'+y+' type=button class=\'btn btn-danger\'>Delete Selected</button>\
-                            <button data-dismiss=modal type=button class=\'btn btn-primary\'>Submit Selected</button>\
+                            <button type=button class=\'tm-radio-delete btn btn-danger\'>Delete Selected</button>\
+                            <button data-dismiss=modal type=button class=\'tm-modal-close btn btn-primary\'>Submit Selected</button>\
                         </div>\
                     </div>\
                 </div>\
             </div>\
             <script>\
-                $(\'.table\').DataTable();\
-                $(\'.tm-radio-'+y+'\').on(\'click\', function(event){\
-                    var tds =  new Array();\
+                $(\'.tm-modal-toggler\').click(function(){\
+                    $(this).parent().find(\'.modal\').modal();\
+                });\
+                $(\'.tm-modal-close\').click(function(){\
+                    $(this).parent().parent().parent().parent().modal(\'hide\');\
+                });\
+                $(\'.tm-radio-input\').click(function(){\
+                    var tds = new Array();\
                     var class_name = this.className;\
                     var row = $(this).parent().closest(\'tr\');\
-                    row.find(\'td\').each (function() {\
+                    row.find(\'td\').each(function() {\
                         var count = $(this).children().length;\
                         if(count == 0) tds.push($(this).html());\
                     });\
                     var tds_string = tds.join(\', \');\
-                    $(\'#\'+class_name).val(tds_string);\
+                    $(this).parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().find(\'.tm-modal-toggler\').val(tds_string);\
                 });\
-                $(\'.readonly\').on(\'keydown paste\', function(e){e.preventDefault();});\
-                $(\'#btn-delete-selected-'+y+'\').click(function() {\
-                    $(\'.tm-radio-'+y+'\').prop(\'checked\', false);\
-                    $(\'#tm-radio-'+y+'\').val(\'\');\
+                $(\'.tm-radio-delete\').click(function(){\
+                    $(this).parent().parent().find(\'.tm-radio-input\').prop(\'checked\', false);\
+                    $(this).parent().parent().parent().parent().parent().find(\'.tm-modal-toggler\').val(\'\');\
                 });\
-            </script>'
+                $(\'.readonly\').on(\'keydown paste\', function(e) {\
+                    $(this).preventDefault();\
+                });\
+            </script>';
         return table_html;
     }
+
 
 
     $("#btn-edit").on("click", function(e){ 
@@ -184,9 +192,9 @@ $(document).ready(function() {
 
             var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(tm_json[input_key])+'\'/>';
 
-            input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html2 = input_html + '<input class=\'tm-modal-toggler form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
-            input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html = input_html + '<input class=\'tm-modal-toggler form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html = input_html + table_html
             table_modal_json = 0;
         }
