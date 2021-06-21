@@ -53,14 +53,14 @@
                     </div>
                 </div>
                 @endif
-                <form action="/update-form" method="POST" id="dynamic-form" class="dynamic-form" enctype="multipart/form-data">
+                <form action="/update-sub-form" method="POST" id="dynamic-form" class="dynamic-form" enctype="multipart/form-data">
                     {{ csrf_field() }}
                     <div class="form-group card-title">
-                        <input value="{{$form->title}}" id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
-                        <input value="{{$form->description}}" class="form-control form-control-sm" type="text" name="description" placeholder="Description (Optional)">
-                        <input id="projectId" type="hidden" name="project_id" value="{{$project_id}}">
+                        <input value="{{$sub_form->title}}" id="formTitle" class="form-control form-control-lg" type="text" name="title" placeholder="Form Title">
+                        <input value="{{$sub_form->description}}" class="form-control form-control-sm" type="text" name="description" placeholder="Description (Optional)">
+                        <input id="formId" type="hidden" name="form_id" value="{{$form_id}}">
                         <input type="hidden" id="is_edit" value="edit">
-                        <input type="hidden" id="id_edit" name="id_edit"  value="{{$form->id}}">
+                        <input type="hidden" id="id_edit" name="id_edit"  value="{{$sub_form->id}}">
                     </div> 
                     <!-- Save Modal -->
                     <div class="modal" id="save-modal">
@@ -73,16 +73,8 @@
                                 <div class="modal-body"  id="json-identifier">
                                     <div class="form-group">
                                         <label for="usr">Form Name:</label>
-                                        <input value="{{$form->form_name}}" id="formName" class="form-control" type="text" name="form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
+                                        <input value="{{$sub_form->sub_form_name}}" id="formName" class="form-control" type="text" name="sub_form_name" placeholder="May only contain letters, numbers, dashes, underscores"> 
                                     </div>
-                                    <!-- <div class="form-group">
-                                        <label for="usr">Login Type:</label>
-                                        <select class="form-control" id="form-type" name="form_type">
-                                            <option value=1 @if($form->form_type==1) selected @endif >Login With User's Dropbox</option>
-                                            <option value=2 @if($form->form_type==2) selected @endif >Login With User's Dropbox + Admin Auth</option>
-                                            <option value=0 @if($form->form_type==0) selected @endif >Without Login</option>
-                                        </select>
-                                    </div> -->
                                 </div>
                                 <div class="modal-footer">
                                     <button id="btn-save" type="button" class="btn btn-danger" onclick="validate();">Save</button>
@@ -90,10 +82,13 @@
                             </div>
                         </div>
                     </div> 
-                    @foreach($form->formInput as $input)
+                    @foreach($sub_form->SubFormInput as $input)
                         {!!$input->html!!}
                         <input class="temp-html" value="{{$input->html}}" type="hidden">
                         <input class="temp-input-key" value="{{$input->input_key}}" type="hidden">
+                        @if(isset($tm_jsons[$input->input_key]))
+                        <input class="temp-tm-json" id="{{$input->input_key}}" value="{{ $tm_jsons[$input->input_key] }}" type="hidden">
+                        @endif
                     @endforeach 
                 </form>
             </div>
@@ -213,6 +208,7 @@
     $(document).ready(function() {
         var temp_html = [];
         var temp_input_key = [];
+        var temp_tm_json = [];
         $('.temp-html').each(function() {
             var html = '<input type="hidden" name="html[]" value="'+$(this).val()+'">';
             temp_html.push(html);
@@ -225,15 +221,28 @@
             $(this).remove();
         });
 
+
         $('.card-input').each(function(i) {
             var id = $(this).attr('data-id');
             if(id>y) y = id;
             var key = $(this).attr('data-key');
             keys[id]=key;
+
+            
             $(this).append(temp_html[i]);
             $(this).append(temp_input_key[i]);
+            
+            var card_input = $(this);
+            $('.temp-tm-json').each(function() {
+                if(key == $(this).attr('id')){
+                    var tm_json = '<input type="hidden" id="tm_json_'+$(this).attr("id")+'" name="tm_json['+$(this).attr("id")+']" value="">';
+                    card_input.append(tm_json);
+                    var a = $('#tm_json_'+ $(this).attr("id")).val($(this).val());
+                }
+            });
         })
 
+        $('.temp-tm-json').remove();
         y++;
     });
 </script>
@@ -303,8 +312,10 @@
             }
         }
         if(isTableModal) {
-            $('#btn-option-add2').append('<input type="file" id="json_upload2" name="json_upload"  />');
-            $("#json_upload2").change(function(event) {
+            var json_upload_id = "json_upload_"+card_id;
+            $('#btn-option-add2').append('<div><label>Table Modal File : '+ edit_input_key +'.json</label></div>');
+            $('#btn-option-add2').append('Change File : <input type="file" id="'+ json_upload_id +'" name="'+json_upload_id+ '"  />');
+            $("#"+json_upload_id).change(function(event) {
                 var reader = new FileReader();
                 reader.onload = onReaderLoad;
                 reader.readAsText(event.target.files[0]);

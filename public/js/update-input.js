@@ -221,10 +221,12 @@ $(document).ready(function() {
         hidden_html2 = hidden_html2+'<input  type="hidden" name="input_key[]" value="'+input_key+'">';
 
         if(input_required == 'Yes') {
+            $('#card-input-'+card_id).attr('data-key', input_key);
             $('#card-input-'+card_id).append(hidden_html2);  
             $('#card-input-'+card_id).attr('data-required', input_required);   
         }
         else   {   
+            $('#card-input-'+card_id).attr('data-key', input_key);
             $('#card-input-'+card_id).append(hidden_html);  
             $('#card-input-'+card_id).attr('data-required', input_required);
         }

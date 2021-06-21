@@ -132,6 +132,14 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
+        
+        $project = Project::find($id);
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        if(Storage::disk('public')->exists($project_path) == 1){
+            Storage::disk('public')->deleteDirectory($project_path);
+        }
+
         $forms = Form::where('project_id', $id)->get();
         foreach($forms as $form){
             $inputs = FormInput::where('form_id', $form->id)->delete();

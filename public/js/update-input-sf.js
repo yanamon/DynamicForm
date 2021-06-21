@@ -11,6 +11,7 @@ $(document).ready(function() {
     var input_key;
 
     
+    
     function createTableModal(json_obj, y, input_key){
         var i;
         var id_name;
@@ -108,7 +109,6 @@ $(document).ready(function() {
     }
 
 
-
     $("#btn-edit").on("click", function(e){ 
         e.preventDefault();
         var card_id = $('#card-id').val();
@@ -137,8 +137,8 @@ $(document).ready(function() {
         input_html2 = input_html;
         if(input_is_option == 1) {
             if(input_type=="dropdown"){
-                input_html2 = input_html2 + '<select required class=form-control name=input_value['+card_id+']><option value= >-- Select '+input_label+' --</option>';
-                input_html = input_html + '<select class=form-control name=input_value['+card_id+']>';
+                input_html2 = input_html2 + '<select required class=\'subform-input form-control\'  name=input_value['+card_id+']><option value= >-- Select '+input_label+' --</option>';
+                input_html = input_html + '<select class=\'subform-input form-control\' name=input_value['+card_id+']>';
                 var i = 0;
                 $('.option2').each(function() {
                     var option =  $(this).val();
@@ -157,11 +157,11 @@ $(document).ready(function() {
                 
                 if(input_type=="checkbox") {
                     input_html = input_html+'<div class=check>';
-                    input_html2 = input_html2+'<div class=\'check checkbox-validation\'>';
+                    input_html2 = input_html2+'<div class=\'check checkbox-validation subform-input\'>';
                 }
                 else {
                     input_html = input_html+'<div class=check>';
-                    input_html2 = input_html2+'<div class=check>';
+                    input_html2 = input_html2+'<div class=\'check radio-validation  subform-input\'';
                 }
                 $('.option2').each(function() {
                     var option =  $(this).val();
@@ -193,15 +193,19 @@ $(document).ready(function() {
 
             var tm_json_input = '<input type="hidden" id=tm-json-'+y+' name=tm_json['+input_key+'] value=\''+JSON.stringify(tm_json[input_key])+'\'/>';
 
-            input_html2 = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html2 = input_html + '<input  class=\'tm-modal-toggler form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html2 = input_html2 + table_html;
-            input_html = input_html + '<input data-toggle=modal data-target=#table-modal-'+card_id+'  id=tm-radio-'+card_id+' class=\'form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
+            input_html = input_html + '<input  class=\'tm-modal-toggler form-control readonly\' type='+input_type+' placeholder='+placeholder+' required>';
             input_html = input_html + table_html
             table_modal_json = 0;
         }
+        else if(input_type == 'file'){ 
+            input_html2 = input_html + '<input class=\'subform-input form-control\' type='+input_type+' name=' + input_key + ' id=' + input_key + ' placeholder='+input_type+' required>';
+            input_html = input_html +  '<input class=\'subform-input form-control\' type='+input_type+' name=' + input_key + ' id=' + input_key + ' placeholder='+input_type+'>';
+        }
         else{ 
-            input_html2 = input_html + '<input class=form-control type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' required>';
-            input_html = input_html + '<input class=form-control type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' >';
+            input_html2 = input_html + '<input class=\'subform-input form-control\' type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' required>';
+            input_html = input_html + '<input class=\'subform-input form-control\' type='+input_type+' name=input_value['+card_id+'] placeholder='+input_type+' >';
         }
         deleteInput();
         keys[card_id] = input_key;
@@ -222,10 +226,12 @@ $(document).ready(function() {
         hidden_html2 = hidden_html2+'<input  type="hidden" name="input_key[]" value="'+input_key+'">';
 
         if(input_required == 'Yes') {
+            $('#card-input-'+card_id).attr('data-key', input_key);
             $('#card-input-'+card_id).append(hidden_html2);  
             $('#card-input-'+card_id).attr('data-required', input_required);   
         }
         else   {   
+            $('#card-input-'+card_id).attr('data-key', input_key);
             $('#card-input-'+card_id).append(hidden_html);  
             $('#card-input-'+card_id).attr('data-required', input_required);
         }

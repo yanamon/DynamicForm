@@ -148,8 +148,11 @@ class FormController extends Controller
             $form_input->form_id = $last_form_id;
 
             $tm_name = $request->input_key[$i].".json";
-            $tm_json = $request->tm_json[$request->input_key[$i]];
-            Storage::disk('public')->put($form_path."/".$tm_name, $tm_json);
+            
+            if(isset($request->tm_json[$request->input_key[$i]])){
+                $tm_json = $request->tm_json[$request->input_key[$i]];
+                Storage::disk('public')->put($form_path."/".$tm_name, $tm_json);
+            }
             $form_input->save();
         }
         return redirect('project/'.$request->project_id.'/forms');
@@ -190,7 +193,11 @@ class FormController extends Controller
         //     $form->auth_file = $form_path.'/auth.json';
         // }
         $form->save();
-        FormInput::where('form_id', $request->id_edit)->delete();
+        $formInputs = FormInput::where('form_id', $request->id_edit)->get();
+        foreach($formInputs as $formInput){
+            $subform = SubForm::where('form_input_id', $formInput->id)->first();
+            if($subform==null) FormInput::where('id', $formInput->id)->delete();
+        }
 
         // if(!empty($auth_file) && $request->form_type==2){
         //     $form_input = new FormInput(); 
@@ -222,6 +229,7 @@ class FormController extends Controller
                 $tm_json = $request->tm_json[$request->input_key[$i]];
                 Storage::disk('public')->put($form_path."/".$tm_name, $tm_json);
             }
+            
             $form_input->save();
         }
         return redirect('project/'.$request->project_id.'/forms');
@@ -533,49 +541,6 @@ class FormController extends Controller
         }
         
         $n = $subform->html_key;
-
-        // $html = $html.'    <div class="form-group card-title" style="margin-bottom:30px;"> ';
-        // $html = $html.'        <button id=btn-submit-subform-'.$n.' class="col-md-12 btn btn-success btn-block">Submit</button> ';
-        // $html = $html.'        <button type="button" class="col-md-12 btn btn-info btn-block tab-'.$request->form_name.'"><a>Back to Main Form</a></button> ';
-        // $html = $html.'        <script> ';
-        // $html = $html.'            var subform_'.$n.'_data = 0;  ';
-        // $html = $html.'            $("#btn-submit-subform-'.$n.'").click(function() { ';
-        // $html = $html.'                var subform_id = "subform-'.$n.'-"+subform_'.$n.'_data; ';
-        // $html = $html.'                $("#card-input-'.$n.'").find("tbody").append("<tr id="+subform_id+"></tr>"); ';
-        // $html = $html.'                $("#subform-'.$subform->sub_form_name.'").find(".subform-input").each(function(index) { ';
-        // $html = $html.'                    if(index%2==0){ ';
-        // $html = $html.'                        $("#"+subform_id).append("<td>"+this.value+"</td>"); ';
-        // $html = $html.'                        $("#"+subform_id).append("<input type=hidden name=input_value['.$n.'][] value="+this.value+">"); ';
-        // $html = $html.'                        $(this).val(""); ';
-        // $html = $html.'                    } ';
-        // $html = $html.'                    else{ ';
-        // $html = $html.'                        $("#"+subform_id).append("<input type=hidden name=input_label['.$n.'][] value="+this.value+">"); ';
-        // $html = $html.'                    } ';
-        // $html = $html.'                }); ';
-        // $html = $html.'                var delete_row_id = "delete-row-'.$n.'"+subform_'.$n.'_data; ';
-        // $html = $html.'                $("#"+subform_id).append(\'<td><center><a href="javascript:void(0)" id=\'+delete_row_id+\' data-tr=\'+subform_id+\'><i class="fa fa-trash" style="color:#b21f2d; font-size:20px;"></i></a></center></td>\'); ';
-        // $html = $html.'                $("#"+delete_row_id).click(function(){ ';
-        // $html = $html.'                    var tr_id = $(this).attr("data-tr"); ';
-        // $html = $html.'                    $("#"+tr_id).remove(); ';
-        // $html = $html.'                    subform_'.$n.'_data--; ';
-        // $html = $html.'                    if(subform_'.$n.'_data==0) $("#subform-'.$n.'").val(""); ';
-        // $html = $html.'                    else $("#subform-'.$n.'").val(subform_'.$n.'_data+" Row Data"); ';
-        // $html = $html.'                    alert("Data Deleted"); ';
-        // $html = $html.'                }); ';
-        // $html = $html.'                subform_'.$n.'_data++; ';
-        // $html = $html.'                $("#subform-'.$n.'").val(subform_'.$n.'_data+" Row Data"); ';
-        // $html = $html.'                alert("Data Added to Main Form"); ';
-        // $html = $html.'            }); ';
-        // $html = $html.'        </script> ';
-        // $html = $html.'        <script> ';
-        // $html = $html.'            $("#tab-'.$subform->sub_form_name.'").click(function (e) { ';
-        // $html = $html.'                e.preventDefault(); ';
-        // $html = $html.'                $("#form-'.$request->form_name.'").removeClass("active"); ';
-        // $html = $html.'                $("#subform-'.$subform->sub_form_name.'").addClass("active"); ';
-        // $html = $html.'            }); ';
-        // $html = $html.'        </script> ';
-        // $html = $html.'    </div> ';
-        // $html = $html.'</div> ';
 
         $html = $html.'    <div class="form-group card-title" style="margin-bottom:30px;"> ';
         $html = $html.'        <button id=btn-submit-subform-'.$n.' class="col-md-12 btn btn-success btn-block">Submit</button> ';
@@ -1136,6 +1101,34 @@ class FormController extends Controller
 
     public function destroy($id)
     {
+        
+        $sub_forms = SubForm::where('form_id', $id)->get();
+
+        $form = Form::find($id);
+        $project_id = $form->project_id;
+        $project = Project::find($project_id);
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        $form_path = $project_path.$form->form_name.'/';
+
+
+        
+        foreach($sub_forms as $sub_form){
+            $form_input_id = $sub_form->form_input_id;
+            $sub_form_path = $form_path.$sub_form->sub_form_name;
+            if(Storage::disk('public')->exists($sub_form_path) == 1){
+                Storage::disk('public')->deleteDirectory($sub_form_path);
+            }
+            $sub_form_inputs = SubFormInput::where('sub_form_id', $sub_form->id)->delete();
+            $sub_form = SubForm::where('id',$sub_form->id)->delete();
+            $form_input = FormInput::find($form_input_id)->delete();
+        }
+
+        
+        if(Storage::disk('public')->exists($form_path) == 1){
+            Storage::disk('public')->deleteDirectory($form_path);
+        }
+
         $form = Form::find($id);
         $project_id = $form->project_id;
         $inputs = FormInput::where('form_id', $form->id)->delete();

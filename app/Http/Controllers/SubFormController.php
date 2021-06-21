@@ -122,8 +122,11 @@ class SubFormController extends Controller
             $sub_form_input->sub_form_id = $last_sub_form_id;
 
             $tm_name = $request->input_key[$i].".json";
-            $tm_json = $request->tm_json[$request->input_key[$i]];
-            Storage::disk('public')->put($sub_form_path."/".$tm_name, $tm_json);
+            
+            if(isset($request->tm_json[$request->input_key[$i]])){
+                $tm_json = $request->tm_json[$request->input_key[$i]];
+                Storage::disk('public')->put($sub_form_path."/".$tm_name, $tm_json);
+            }
             $sub_form_input->save();
         }
 
@@ -154,11 +157,125 @@ class SubFormController extends Controller
         $form_id = $sub_form->form_id;
         $form_input_id = $sub_form->form_input_id;
 
+        
+        $form = Form::find($sub_form->form_id);
+        $project_id = $form->project_id;
+        $project = Project::find($project_id);
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        $form_path = $project_path.$form->form_name.'/';
+        $sub_form_path = $form_path.$sub_form->sub_form_name;
+        if(Storage::disk('public')->exists($sub_form_path) == 1){
+            Storage::disk('public')->deleteDirectory($sub_form_path);
+        }
+
         $sub_form_inputs = SubFormInput::where('sub_form_id', $id)->delete();
         $sub_form = SubForm::find($id)->delete();
         $form_input = FormInput::find($form_input_id)->delete();
 
+
         return redirect('form/'.$form_id.'/sub-forms');
+    }
+
+    public function edit($id)
+    {
+        $inputTypes = InputType::get();
+        $sub_form = SubForm::with('subFormInput')->find($id);
+        $form_id = $sub_form->form_id;
+        $form = Form::find($form_id);
+        $project_id = $form->project_id;
+        $project = Project::find($project_id);
+        $user_id = Auth::user()->id;
+        $tm_jsons = array();
+
+        $form_inputs = FormInput::where('form_id', $id)->get();
+        foreach($form_inputs as $form_input){
+            $tm_json_path = 'table-modal/'.$user_id.'/'.$project->project_name.'/'.$form->form_name.'/'.$sub_form->sub_form_name.'/'.$form_input->input_key.".json";
+            if (Storage::disk("public")->exists($tm_json_path)) {
+                $tm_json = Storage::disk("public")->get($tm_json_path);
+                $tm_jsons[$form_input->input_key] = $tm_json;
+            }
+        }
+
+        return view('sub-form-edit', compact('sub_form','inputTypes', 'form_id','tm_jsons'));
+    }
+
+    
+    public function update(Request $request)
+    {
+        $request->validate([
+            'title' => 'required',
+            'form_id' => 'required',
+            'html' => 'required',
+            'input_key' => 'required',
+            'sub_form_name' => 'required',
+        ]);
+        $sub_form = SubForm::find($request->id_edit);
+        $sub_form->title = $request->title;
+        $sub_form->description = $request->description;
+        $sub_form->sub_form_name = $request->sub_form_name;
+        // $auth_file = $request->file('json_identifier');
+        // $form->form_type = $request->form_type;
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $auth_file = file_get_contents($auth_file);
+        //     $auths = json_decode($auth_file);
+        //     foreach($auths as  $key => $auth){
+        //         foreach($auth as  $key2 => $aut){
+        //             $auth_input_key = $key2;
+        //             break;
+        //         }
+        //         break;
+        //     }
+        //     $form_path = $form->auth_file;
+        //     Storage::delete($form->auth_file);
+        //     $form_path = substr($form_path, 0, -9);
+        //     $path = $request->file('json_identifier')->storeAs(
+        //         $form_path, 'auth.json'
+        //     );
+        //     $form->auth_file = $form_path.'/auth.json';
+        // }
+        $sub_form->save();
+        SubFormInput::where('sub_form_id', $request->id_edit)->delete();
+
+        // if(!empty($auth_file) && $request->form_type==2){
+        //     $form_input = new FormInput(); 
+        //     $form_input->input_key = $auth_input_key;
+        //     $form_input->form_id = $request->id_edit;
+        //     $form_input->save();
+        // }
+
+        $form = Form::find($sub_form->form_id);
+        $project_id = $form->project_id;
+        $project = Project::find($project_id);
+        $user_path = 'table-modal/'.Auth::user()->id.'/';
+        $project_path = $user_path.$project->project_name.'/';
+        if(Storage::disk('public')->exists($project_path) == 0){
+            Storage::disk('public')->makeDirectory($project_path);
+        }
+        $form_path = $project_path.$request->form_name.'/';;
+        if(Storage::disk('public')->exists($form_path) == 0){
+            Storage::disk('public')->makeDirectory($form_path);
+        }
+        $sub_form_path = $form_path.$request->sub_form_name;
+        if(Storage::disk('public')->exists($sub_form_path) == 0){
+            Storage::disk('public')->makeDirectory($sub_form_path);
+        }
+
+        foreach($request->html as $i => $html){
+            $sub_form_input = new SubFormInput();
+            $sub_form_input->html = $html;
+            $sub_form_input->input_key = $request->input_key[$i];
+            $sub_form_input->sub_form_id = $request->id_edit;
+
+            $tm_name = $request->input_key[$i].".json";
+            if(isset($request->tm_json[$request->input_key[$i]])){
+                $tm_json = $request->tm_json[$request->input_key[$i]];
+                Storage::disk('public')->put($sub_form_path."/".$tm_name, $tm_json);
+            }
+            $sub_form_input->save();
+        }
+        return redirect('form/'.$request->form_id.'/sub-forms');
+
     }
 
 }

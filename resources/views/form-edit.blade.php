@@ -236,9 +236,10 @@
             var key = $(this).attr('data-key');
             keys[id]=key;
 
-            
-            $(this).append(temp_html[i]);
-            $(this).append(temp_input_key[i]);
+            if($(this).attr('data-id') < 1000) {
+                $(this).append(temp_html[i]);
+                $(this).append(temp_input_key[i]);
+            }
             
             var card_input = $(this);
             $('.temp-tm-json').each(function() {
@@ -335,7 +336,11 @@
         }
         else if(dropdown_options.length > 0) isOption(dropdown_options);
         else if(edit_options.length > 1) isOption(edit_options);
-        $('#action-modal').modal('show');
+
+        if($(this).attr('data-id') < 1000) $('#action-modal').modal('show');
+        else{
+            alert("Sub form input may only edited on sub form menu")
+        }
     });   
 
      jQuery.fn.swap = function(b){ 

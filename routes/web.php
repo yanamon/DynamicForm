@@ -25,7 +25,7 @@ Route::post('/store-sub-form', 'SubFormController@store');
 Route::post('/delete-sub-form/{id}', 'SubFormController@destroy');
 
 Route::get('/edit-sub-form/{id}', 'SubFormController@edit');
-Route::post('/update-sub-form', 'FormController@update');
+Route::post('/update-sub-form', 'SubFormController@update');
 Route::get('/show-sub-form/{id}', 'SubFormController@show');
 
 
