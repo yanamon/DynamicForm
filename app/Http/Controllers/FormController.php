@@ -25,7 +25,7 @@ class FormController extends Controller
 
     public function index($project_id)
     {
-        $forms = Form::where('project_id', $project_id)->orderBy('menu_index', 'asc')->get();
+        $forms = Form::where('project_id', $project_id)->withCount('subForm')->orderBy('menu_index', 'asc')->get();
         return view('form-show-all', compact('forms','project_id'));
     }
 
@@ -439,7 +439,7 @@ class FormController extends Controller
         $htmls = $htmls.'        <div class="sidebar-header"> ';
         $htmls = $htmls.'            <h3>'.$request->project_name.'</h3> ';
         $htmls = $htmls.'        </div> ';
-        $htmls = $htmls.'        <ul class="list-unstyled components"> ';
+        $htmls = $htmls.'        <ul class="list-unstyled components" style="padding:12px;"> ';
 
         $htmls = $htmls.' <p>ALL FORM LIST :</p> ';
         $forms = Form::where('project_id', $request->project_id)->orderBy('menu_index','asc')->get();

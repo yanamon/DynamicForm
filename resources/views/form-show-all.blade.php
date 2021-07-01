@@ -14,7 +14,7 @@
                             <th>Form Name</th>
                             <th>Form Title</th>
                             <th>Form Description</th>
-                            <!-- <th>Login Type</th> -->
+                            <th>Sub Form</th>
                             <th>Action</th>
                             <th>Download <input id="check-all" type="checkbox" checked></th>
                         </thead>
@@ -32,6 +32,12 @@
                                         @endif
                                     </td> -->
                                     <td>
+                                        {{$form->sub_form_count}} Sub Form 
+                                        <a href="/form/{{$form->id}}/sub-forms" title="Go To Sub Form Page">
+                                            <button type="button" style="color:orange;">Sub Form Page</button>
+                                        </a>   
+                                    </td>
+                                    <td>
                                         <center>	
                                             <a href="/show-form/{{$form->id}}" title="Show Form">
                                                 <i class="fa fa-eye" style="color:#28a745; font-size:20px;"></i>
@@ -44,10 +50,6 @@
                                             </a>    
                                             
                                             <br>
-                                            
-                                            <a href="/form/{{$form->id}}/sub-forms" title="Create Sub Form">
-                                                <i class="fa fa-file" style="color:orange; font-size:20px;"></i>
-                                            </a>   
                                             <a href="/change-menu-index/{{ $form->id }}/{{'down'}}" title="Move Down">
                                                 <i class="fa fa-arrow-down" style="color:white; font-size:20px;"></i>
                                             </a>          

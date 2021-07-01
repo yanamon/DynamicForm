@@ -15,4 +15,8 @@ class Form extends Model
   public function project(){
     return $this->belongsTo('App\Project', 'project_id');
   }
+
+  public function subForm(){
+    return $this->hasMany('App\SubForm', 'form_id');
+  }
 }
