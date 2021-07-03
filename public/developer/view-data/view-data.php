@@ -44,7 +44,7 @@ function download_data($dropbox, $project_name, $form_name, $last_folder_id){
 			}
 			else $is_download = 1;
 		}
-		else {
+		if($is_download) {
 			mkdir($local_path.$folder_id);
 			$from = $dropbox_path.$folder->getName()."/insert.json";
 			$to = $local_path.$folder_id."/insert.json";
