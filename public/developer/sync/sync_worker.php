@@ -1,4 +1,4 @@
-<?php $app_key="pguozkqfb6vn8w9"; $app_secret="dw5h7xegfdm356a"; $access_token="apa_LdNqwrsAAAAAAAABfUSb9a8JZ5YuUMOK9FWi3oQp2AnPKyl8bARec7pjPns2"; $project_name="Toko"; $server="localhost"; $user="root"; $pass=""; $db="db_toko"; $syncs[0]["folder"]="master_barang"; $syncs[0]["table"]="tb_barang"; $syncs[0]["table_attr"][0]="kode_barang"; $syncs[0]["folder_attr"][0]="kode_barang"; $syncs[0]["direct_to_db"]["kode_barang"]="no";  ?> 
+
 
 
 <?php

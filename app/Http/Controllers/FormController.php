@@ -277,6 +277,7 @@ class FormController extends Controller
         Storage::disk('public')->makeDirectory($share_path);
         $storage_path1 = storage_path('app/dropbox');
         $storage_path3 = storage_path('app/sync/');
+        $storage_path_view = storage_path('app/view-data/');
         $storage_path2 = storage_path('app/public/' . $project_path);
         $storage_path4 = storage_path('app/public/' . $share_path);
         $storage_path5 = storage_path('app/public/' . $user_path);
@@ -313,6 +314,7 @@ class FormController extends Controller
         $zip->close();
 
         File::copyDirectory($storage_path3, $storage_path2);
+        File::copyDirectory($storage_path_view, $storage_path2);
         $prepend = '<?php ';
         $prepend = $prepend.'$app_key="'.$project->dropbox_app_key.'"; ';
         $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
@@ -327,8 +329,15 @@ class FormController extends Controller
         $prepend = $prepend.'if(!isset($_POST["server_name"]) && !isset($_POST["request_update_data"]) ){ ?>';
         $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
         $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');
+        $file2 = storage_path('app/public/'.$project_path.'/view-data/view-data.php');
         $fileContents = file_get_contents($file);
+        $fileContents2 = file_get_contents($file2);
         file_put_contents($file, $prepend . $fileContents);  
+        file_put_contents($file2, $prepend . $fileContents2);  
+        
+        $htmls = '<?php header("Location:sync/sync_setter.php"); exit(); ?>';
+        $filename = "index.php";
+        Storage::disk('public')->put($project_path."/".$filename, $htmls);
 
         $zip_file = $project->project_name.'-admin.zip';
         $zip = new \ZipArchive();

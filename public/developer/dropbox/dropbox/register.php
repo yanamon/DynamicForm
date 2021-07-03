@@ -1,4 +1,4 @@
-<?php $app_key = "pguozkqfb6vn8w9";  $app_secret = "dw5h7xegfdm356a"; ?>
+
 
 
 <?php
