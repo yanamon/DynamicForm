@@ -264,7 +264,7 @@ class FormController extends Controller
             if($i==0) $forms = Form::where('id', $checked_form_id);
             else $forms->orWhere('id', $checked_form_id);
         }  
-        $forms = $forms->with('formInput')->get();
+        $forms = $forms->with('formInput')->with('subForm')->get();
         $project = Project::find($id);
         
         $user_path = Auth::user()->id.'/';
@@ -320,12 +320,29 @@ class FormController extends Controller
         $prepend = $prepend.'$app_secret="'.$project->dropbox_app_secret.'"; ';
         $prepend = $prepend.'$access_token="'.$project->dropbox_access_token.'"; ';
         $prepend = $prepend.'$project_name="'.$project->project_name.'"; ';
-        foreach($forms as $i => $form){
-            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"] = "'.$form->form_name.'";';
+        $i = 0;
+        foreach($forms as $form){
+            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"]["name"] = "'.$form->form_name.'";';
+            $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"]["type"] = 0;';
             foreach($form->formInput as $j => $formInput){
-                $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
+                $checksubform = SubForm::where('form_input_id', $formInput->id)->get();
+                if(count($checksubform) > 0) continue;
+                else $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$formInput->input_key.'";';
             }
+            $i++;
         }  
+        foreach($forms as $form){
+            foreach($form->subForm as $sub_form){
+                $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"]["name"]  = "'.$sub_form->sub_form_name.'";';
+                $prepend = $prepend.'$form_attr["data"]['.$i.']["folder"]["type"] = "'.$form->form_name.'";';
+                $subFormInputs= SubFormInput::where('sub_form_id', $sub_form->id)->get();
+                foreach($subFormInputs as $j => $subFormInput){
+                    $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.$j.'] = "'.$subFormInput->input_key.'";';
+                }
+                $prepend = $prepend.'$form_attr["data"]['.$i.']["attribute"]['.++$j.'] = "'.$form->form_name.'_id";';
+                $i++;
+            }
+        }
         $prepend = $prepend.'if(!isset($_POST["server_name"]) && !isset($_POST["request_update_data"]) ){ ?>';
         $prepend = $prepend.'<script>var form_attr = <?php echo json_encode($form_attr); ?>;</script> <?php } ?>';
         $file = storage_path('app/public/'.$project_path.'/sync/sync_setter.php');

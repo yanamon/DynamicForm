@@ -1,149 +1,165 @@
 
 
 
-<?php 
-require_once "../dropbox/autoload.php"; 
-use Kunnu\Dropbox\DropboxFile; 
-use Kunnu\Dropbox\DropboxApp; 
-use Kunnu\Dropbox\Dropbox; 
-
+<?php
+require_once "../dropbox/autoload.php";
+use Kunnu\Dropbox\DropboxFile;
+use Kunnu\Dropbox\DropboxApp;
+use Kunnu\Dropbox\Dropbox;
 
 $setting_path = 'sync_setting.json';
-if(file_exists($setting_path)){
+if (file_exists($setting_path))
+{
     $mysql_json = file_get_contents($setting_path);
     $sync_setting = json_decode($mysql_json, true);
 }
 
-
-if(isset($_POST["request_update_data"])){ 
-    $app = new DropboxApp($app_key, $app_secret, $access_token); 
-    $dropbox = new Dropbox($app);  
+if (isset($_POST["request_update_data"]))
+{
+    $app = new DropboxApp($app_key, $app_secret, $access_token);
+    $dropbox = new Dropbox($app);
     $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
     $mounts = $response->getDecodedBody();
-    foreach($mounts["entries"] as $mount) {
-        if(isset($mount["path_lower"])) $path= $mount["path_lower"];
-        else {
-            $response = $dropbox->postToAPI("/sharing/mount_folder", [
-                "shared_folder_id" => $mount["shared_folder_id"]
-            ]); 
+    foreach ($mounts["entries"] as $mount)
+    {
+        if (isset($mount["path_lower"])) $path = $mount["path_lower"];
+        else
+        {
+            $response = $dropbox->postToAPI("/sharing/mount_folder", ["shared_folder_id" => $mount["shared_folder_id"]]);
             $mount_result = $response->getDecodedBody();
             $path = $mount_result["path_lower"];
         }
         $mount_name = $mount["name"];
-        $mount_name = strtok($mount_name,' ');
-        $move_path = "/".$project_name."/".$mount_name."/unsynchronized/data";
-        $move = $dropbox->copy($path, $move_path, true); 
-        if($mount["access_type"][".tag"] == "editor"){
-            $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", [
-                "shared_folder_id" => $mount["shared_folder_id"],
-                "leave_a_copy" => false
-            ]);  
+        $mount_name = strtok($mount_name, ' ');
+        $move_path = "/" . $project_name . "/" . $mount_name . "/unsynchronized/data";
+        $move = $dropbox->copy($path, $move_path, true);
+        if ($mount["access_type"][".tag"] == "editor")
+        {
+            $response = $dropbox->postToAPI("/sharing/relinquish_folder_membership", ["shared_folder_id" => $mount["shared_folder_id"], "leave_a_copy" => false]);
         }
-        else if($mount["access_type"][".tag"] == "owner"){  
-            $response = $dropbox->postToAPI("/sharing/unshare_folder", [
-                "shared_folder_id" => $mount["shared_folder_id"],
-                "leave_a_copy" => false
-            ]);  
+        else if ($mount["access_type"][".tag"] == "owner")
+        {
+            $response = $dropbox->postToAPI("/sharing/unshare_folder", ["shared_folder_id" => $mount["shared_folder_id"], "leave_a_copy" => false]);
         }
     }
-    
-    foreach($form_attr["data"] as $sync){
+
+    foreach ($form_attr["data"] as $sync)
+    {
         $file_contents[$sync["folder"]] = array();
-        $path = "/".$project_name."/".$sync["folder"]."/unsynchronized";
+        $path = "/" . $project_name . "/" . $sync["folder"] . "/unsynchronized";
         $listData = $dropbox->listFolder($path);
-        if(!empty($listData->getItems()->first())){
-            foreach($listData->getItems() as $item){
+        if (!empty($listData->getItems()
+            ->first()))
+        {
+            foreach ($listData->getItems() as $item)
+            {
                 $first_folder_name = $item->getName();
-                try{    
-                    $file_download = $dropbox->download($path."/".$first_folder_name."/insert.json");
-                }catch(Exception $e){
-                    $file_download = $dropbox->download($path."/".$first_folder_name."/update.json");
+                try
+                {
+                    $file_download = $dropbox->download($path . "/" . $first_folder_name . "/insert.json");
+                }
+                catch(Exception $e)
+                {
+                    $file_download = $dropbox->download($path . "/" . $first_folder_name . "/update.json");
                     $jenis_sync = "update";
                 }
-                array_push($file_contents[$sync["folder"]],json_decode($file_download->getContents(),true));
+                array_push($file_contents[$sync["folder"]], json_decode($file_download->getContents() , true));
             }
         }
     }
     echo json_encode($file_contents);
     exit;
 }
-else if(isset($_POST["folder"])){ 
-    $folders = $_POST["folder"]; 
-    $tables = $_POST["table"]; 
-    $attributes = $_POST["attribute"]; 
-    if(isset($_POST["direct_to_db"])) $direct_to_dbs = $_POST["direct_to_db"]; 
-    $app_key = $_POST["dropbox_app_key"]; 
-    $app_secret = $_POST["dropbox_app_secret"]; 
-    $access_token = $_POST["dropbox_access_token"];  
-    $project_name = $_POST["project_folder_name"];  
-    $server = $_POST["server_name"]; 
-    $user = $_POST["username"]; 
-    $pass = $_POST["password"]; 
-    $db = $_POST["database_name"]; 
-
+else if (isset($_POST["folder"]))
+{
+    $folders = $_POST["folder"];
+    $folder_types = $_POST["folder_type"];
+    $tables = $_POST["table"];
+    $attributes = $_POST["attribute"];
+    if (isset($_POST["direct_to_db"])) $direct_to_dbs = $_POST["direct_to_db"];
+    $app_key = $_POST["dropbox_app_key"];
+    $app_secret = $_POST["dropbox_app_secret"];
+    $access_token = $_POST["dropbox_access_token"];
+    $project_name = $_POST["project_folder_name"];
+    $server = $_POST["server_name"];
+    $user = $_POST["username"];
+    $pass = $_POST["password"];
+    $db = $_POST["database_name"];
 
     $prepend = '<?php ';
-    $prepend = $prepend.'$app_key="'.$app_key.'"; ';
-    $prepend = $prepend.'$app_secret="'.$app_secret.'"; ';
-    $prepend = $prepend.'$access_token="'.$access_token.'"; ';
-    $prepend = $prepend.'$project_name="'.$project_name.'"; ';
-    $prepend = $prepend.'$server="'.$server.'"; ';
-    $prepend = $prepend.'$user="'.$user.'"; ';
-    $prepend = $prepend.'$pass="'.$pass.'"; ';
-    $prepend = $prepend.'$db="'.$db.'"; ';
+    $prepend = $prepend . '$app_key="' . $app_key . '"; ';
+    $prepend = $prepend . '$app_secret="' . $app_secret . '"; ';
+    $prepend = $prepend . '$access_token="' . $access_token . '"; ';
+    $prepend = $prepend . '$project_name="' . $project_name . '"; ';
+    $prepend = $prepend . '$server="' . $server . '"; ';
+    $prepend = $prepend . '$user="' . $user . '"; ';
+    $prepend = $prepend . '$pass="' . $pass . '"; ';
+    $prepend = $prepend . '$db="' . $db . '"; ';
 
-    foreach($folders as $i => $folder){
-        $prepend = $prepend.'$syncs['.$i.']["folder"]="'.$folders[$i].'"; ';
-        $prepend = $prepend.'$syncs['.$i.']["table"]="'.$tables[$i].'"; ';
+    foreach ($folders as $i => $folder)
+    {
+        $prepend = $prepend . '$syncs[' . $i . ']["folder"]="' . $folders[$i] . '"; ';
+        $prepend = $prepend . '$syncs[' . $i . ']["folder_type"]["' . $folders[$i] . '"]="' . $folder_types[$i] . '"; ';
+        $prepend = $prepend . '$syncs[' . $i . ']["table"]="' . $tables[$i] . '"; ';
 
         $isPrepend2 = false;
         $prepend2 = '<?php ';
-        $prepend2 = $prepend2.'$server="'.$server.'"; ';
-        $prepend2 = $prepend2.'$user="'.$user.'"; ';
-        $prepend2 = $prepend2.'$pass="'.$pass.'"; ';
-        $prepend2 = $prepend2.'$db="'.$db.'"; ';
-        $prepend2 = $prepend2.'$table_name="'.$tables[$i].'"; ';
+        $prepend2 = $prepend2 . '$server="' . $server . '"; ';
+        $prepend2 = $prepend2 . '$user="' . $user . '"; ';
+        $prepend2 = $prepend2 . '$pass="' . $pass . '"; ';
+        $prepend2 = $prepend2 . '$db="' . $db . '"; ';
+        $prepend2 = $prepend2 . '$table_name="' . $tables[$i] . '"; ';
 
-        foreach($attributes[$tables[$i]] as $j => $attribute){
-            $prepend = $prepend.'$syncs['.$i.']["table_attr"]['.$j.']="'.$attribute.'"; ';
+        foreach ($attributes[$tables[$i]] as $j => $attribute)
+        {
+            $prepend = $prepend . '$syncs[' . $i . ']["table_attr"][' . $j . ']="' . $attribute . '"; ';
         }
-        foreach($attributes[$folders[$i]] as $j => $attribute){
-            $prepend = $prepend.'$syncs['.$i.']["folder_attr"]['.$j.']="'.$attribute.'"; ';
+        foreach ($attributes[$folders[$i]] as $j => $attribute)
+        {
+            $prepend = $prepend . '$syncs[' . $i . ']["folder_attr"][' . $j . ']="' . $attribute . '"; ';
         }
-        foreach($attributes[$folders[$i]] as $j => $attribute){
-            if(!isset($direct_to_dbs[$folders[$i]][$j])) $direct_to_dbs[$folders[$i]][$j] = "no";
-            else{
-                $prepend2 = $prepend2.'$direct_to_db_folder['.$j.'] = "'.$attribute.'"; ';
-                $prepend2 = $prepend2.'$direct_to_db_table['.$j.'] = "'.$attributes[$tables[$i]][$j].'"; ';
-                $isPrepend2 = true;
-            }
-            $prepend = $prepend.'$syncs['.$i.']["direct_to_db"]["'.$attribute.'"]="'.$direct_to_dbs[$folders[$i]][$j].'"; ';
-        }
+        // foreach ($attributes[$folders[$i]] as $j => $attribute)
+        // {
+        //     if (!isset($direct_to_dbs[$folders[$i]][$j])) $direct_to_dbs[$folders[$i]][$j] = "no";
+        //     else
+        //     {
+        //         $prepend2 = $prepend2 . '$direct_to_db_folder[' . $j . '] = "' . $attribute . '"; ';
+        //         $prepend2 = $prepend2 . '$direct_to_db_table[' . $j . '] = "' . $attributes[$tables[$i]][$j] . '"; ';
+        //         $isPrepend2 = true;
+        //     }
+        //     $prepend = $prepend . '$syncs[' . $i . ']["direct_to_db"]["' . $attribute . '"]="' . $direct_to_dbs[$folders[$i]][$j] . '"; ';
+        // }
     }
-    $prepend = $prepend.' ?> ';
-    $prepend = $prepend."\n";
+    $prepend = $prepend . ' ?> ';
+    $prepend = $prepend . "\n";
 
     $file = 'sync_worker.php';
-    
+
     $contents = file_get_contents($file);
     $new_contents = preg_replace('/^.+\n/', '', $contents);
-    file_put_contents($file,$new_contents);
-    
+    file_put_contents($file, $new_contents);
+
     $fileContents = file_get_contents($file);
     file_put_contents($file, $prepend . $fileContents);
     echo "Save settings success";
     exit;
 }
 
-else if(isset($_POST["server_name"])){ 
-    $server = $_POST["server_name"]; 
-    $user = $_POST["username"]; 
-    $pass = $_POST["password"]; 
-    $db = $_POST["database_name"]; 
-    $mysql_json = array("server_name"=>$server, "username"=>$user, "password"=>$pass, "database_name"=>$db);
+else if (isset($_POST["server_name"]))
+{
+    $server = $_POST["server_name"];
+    $user = $_POST["username"];
+    $pass = $_POST["password"];
+    $db = $_POST["database_name"];
+    $mysql_json = array(
+        "server_name" => $server,
+        "username" => $user,
+        "password" => $pass,
+        "database_name" => $db
+    );
 
-
-    try {
+    try
+    {
         $conn = new PDO("mysql:host=$server;dbname=$db", $user, $pass);
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -151,33 +167,36 @@ else if(isset($_POST["server_name"])){
             FROM information_schema.columns 
             WHERE table_schema = '$db' AND column_key != 'PRI' ");
         $query->execute();
-        $result['column'] = $query -> fetchAll(); 
+        $result['column'] = $query->fetchAll();
         $query = $conn->prepare("SELECT table_name
         FROM information_schema.tables 
         WHERE table_schema = '$db'");
         $query->execute();
-        $result['table'] = $query -> fetchAll();
-        $result['message'] = "Connected to database: ".$db;
+        $result['table'] = $query->fetchAll();
+        $result['message'] = "Connected to database: " . $db;
         $result['success'] = 1;
         $attr = array();
-        foreach($result['table'] as $field){
-            array_push($attr, $field['table_name']); 
+        foreach ($result['table'] as $field)
+        {
+            array_push($attr, $field['table_name']);
         }
         array_push($mysql_json, $attr);
         file_put_contents('sync_setting.json', json_encode($mysql_json));
 
         echo json_encode($result);
     }
-    catch(PDOException $e){
+    catch(PDOException $e)
+    {
         $result['message'] = "Connection failed: " . $e->getMessage();
         $result['success'] = 0;
         echo json_encode($result);
     }
 
     exit;
-} 
+}
 
-else{ 
+else
+{
 ?> 
 
 <html>
@@ -208,25 +227,29 @@ else{
 						<a href="#pageSubmenu1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Dropbox Data</a>
 						<ul class="collapse list-unstyled" id="pageSubmenu1">
 							<?php
-								foreach($form_attr["data"] as $form){
-									echo '<li><a href="../view-data/view-data.php?folder='.$form['folder'].'">'.$form['folder'].'</a></li>';
-								}
-							?>
+    foreach ($form_attr["data"] as $form)
+    {
+        echo '<li><a href="../view-data/view-data.php?folder=' . $form['folder'] . '">' . $form['folder'] . '</a></li>';
+    }
+?>
 						</ul>
 					</li>
 					<li>
 						<a href="#pageSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">MySQL Data</a>
 						<ul class="collapse list-unstyled" id="pageSubmenu2">
 							<?php
-								if(isset($sync_setting)){
-                                    foreach($sync_setting[0] as $table){
-                                        echo '<li><a href="../view-data/view-data.php?table='.$table.'">'.$table.'</a></li>';
-                                    }
-                                }
-                                else {
-					                echo '<li style="font-size:12">Set your MySQL on Sync Setter Page!</li>';
-                                }
-							?>
+    if (isset($sync_setting))
+    {
+        foreach ($sync_setting[0] as $table)
+        {
+            echo '<li><a href="../view-data/view-data.php?table=' . $table . '">' . $table . '</a></li>';
+        }
+    }
+    else
+    {
+        echo '<li style="font-size:12">Set your MySQL on Sync Setter Page!</li>';
+    }
+?>
 						</ul>
 					</li>
 				</ul>
@@ -294,19 +317,19 @@ else{
                                                 <div class="modal-body">
                                                     <div class="form-group">
                                                         <label for="usr">Server Name</label>
-                                                        <input class="form-control required2 required3" type="text" name="server_name" placeholder="" value="<?php if(isset($sync_setting)) echo $sync_setting['server_name'];?>" required> 
+                                                        <input class="form-control required2 required3" type="text" name="server_name" placeholder="" value="<?php if (isset($sync_setting)) echo $sync_setting['server_name']; ?>" required> 
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="usr">Username</label>
-                                                        <input class="form-control required2 required3" type="text" name="username" placeholder="" value="<?php if(isset($sync_setting)) echo $sync_setting['username'];?>"required> 
+                                                        <input class="form-control required2 required3" type="text" name="username" placeholder="" value="<?php if (isset($sync_setting)) echo $sync_setting['username']; ?>"required> 
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="usr">Password</label>
-                                                        <input class="form-control" type="password" name="password" placeholder="" value="<?php if(isset($sync_setting)) echo $sync_setting['password'];?>"> 
+                                                        <input class="form-control" type="password" name="password" placeholder="" value="<?php if (isset($sync_setting)) echo $sync_setting['password']; ?>"> 
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="usr">Database Name</label>
-                                                        <input class="form-control required2 required3" type="text" name="database_name" placeholder="" required value="<?php if(isset($sync_setting)) echo $sync_setting['database_name'];?>"> 
+                                                        <input class="form-control required2 required3" type="text" name="database_name" placeholder="" required value="<?php if (isset($sync_setting)) echo $sync_setting['database_name']; ?>"> 
                                                     </div>
                                                     <button id="btn-database" type="button" class="btn btn-danger">Connect to Database</button> 
                                                 </div>
@@ -456,7 +479,8 @@ else{
 
 </html> 
 
-<?php } ?>
+<?php
+} ?>
 
 <script>
     var append;
@@ -500,11 +524,11 @@ else{
                         $(this).parent().parent().parent().find(".sync-attr-to").append('<option value="">- Select MySQL Field -</option>');
                     }
                     if(clicked_button.parent().parent().parent().find(".sync-attr-from").children().length == 1) {
-                        $('.'+selected_folder).children().each(function(){
+                        $('#dropbox-folder').find('.'+selected_folder).children().each(function(){
                             var attr = $(this).html();
                             clicked_button.parent().parent().parent().find(".sync-attr-from").append('<option>'+ attr+ '</option>');
                         });
-                        $('.'+selected_table).children().each(function(){
+                        $('#database-table').find('.'+selected_table).children().each(function(){
                             var attr = $(this).html();
                             clicked_button.parent().parent().parent().find(".sync-attr-to").append('<option>'+ attr+ '</option>');
                         });
@@ -514,6 +538,10 @@ else{
                         $(this).parent().parent().parent().find(".sync-attr-to").attr("name", 'attribute['+selected_table+'][]' );
                         $(this).parent().parent().parent().find(".direct-to-database").attr("name", 'direct_to_db['+selected_folder+'][]' );
                     }
+                    
+                    var type = $('#dropbox-folder').find('.'+selected_folder).attr('data-type');
+                    clicked_button.parent().parent().parent().find(".folder-type").remove();
+                    clicked_button.parent().parent().parent().find(".sync-modal").append('<input class=folder-type type=hidden value='+type+' name=folder_type[]>');
                     $(this).parent().parent().parent().find(".sync-modal").modal('show');
                 }
                 else {
@@ -579,24 +607,24 @@ else{
         $('.sync-from').append('<option value="">-- Select Dropbox Folder --</option>')
         $.each(form_attr['data'], function(i, item) {
             $('#dropbox-folder').append('\
-                <a data-toggle="collapse" href="#folder-'+ i + '" class="list-group-item">'+item["folder"]+'</a> \
-                <div class="list-group collapse '+item["folder"]+'" id="folder-'+ i + '">\
+                <a data-toggle="collapse" href="#folder-'+ i + '" class="list-group-item">'+item["folder"]["name"]+'</a> \
+                <div data-type="'+item["folder"]["type"]+'" class="list-group collapse '+item["folder"]["name"]+'" id="folder-'+ i + '">\
                 </div>\
             ');
             
             if(i == 0) var active = "active";
             else var active = "";
 
-            $('#view-folder').append('<li class="nav-item"><a class="nav-link '+active+'" data-toggle="pill" href="#'+item["folder"]+'">'+item["folder"]+'</a></li>');
+            $('#view-folder').append('<li class="nav-item"><a class="nav-link '+active+'" data-toggle="pill" href="#'+item["folder"]["name"]+'">'+item["folder"]["name"]["name"]+'</a></li>');
 
             $('#view-attr').append('\
-                <div id="'+item["folder"]+'" class="container tab-pane '+active+'"><br>\
+                <div id="'+item["folder"]["name"]+'" class="container tab-pane '+active+'"><br>\
                     <div class="table-responsive" style="background:white;padding:15px 5px;">\
                         <table class="table table-bordered example">\
                             <thead class="thead-dark">\
-                                <tr id="thead-'+item["folder"]+'"></tr>\
+                                <tr id="thead-'+item["folder"]["name"]+'"></tr>\
                             </thead>\
-                            <tbody id="tbody-'+item["folder"]+'">\
+                            <tbody id="tbody-'+item["folder"]["name"]+'">\
                             </tbody>\
                         </table>\
                     </div>  \
@@ -605,10 +633,10 @@ else{
 
             $.each(item['attribute'], function(j, attribute) { 
                 $('#folder-' +  i).append('<a class="list-group-item">'+attribute+'</a>')
-                $('#thead-' +  item["folder"]).append('<th>'+attribute+'</th>')
+                $('#thead-' +  item["folder"]["name"]).append('<th>'+attribute+'</th>')
                 // $('#folder-' +  i).append('<input type=hidden name=attribute['+item["folder"]+']['+j+'] value='+attribute+'>')
             });
-            $('.sync-from').append('<option>'+ item["folder"] + '</option>')
+            $('.sync-from').append('<option>'+ item["folder"]["name"] + '</option>')
         });
         $('.example').DataTable();
         append = updateOption();

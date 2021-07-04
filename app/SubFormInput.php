@@ -8,7 +8,7 @@ class SubFormInput extends Model
 {
     protected $table = "sub_form_inputs";
 
-    public function sub_form(){
+    public function subForm(){
 		return $this->belongsTo('App\SubForm', 'sub_form_id');
     }
 
