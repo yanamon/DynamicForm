@@ -222,7 +222,8 @@ else if(isset($_GET["folder"]) || isset($_GET["table"]) ){
 						<ul class="collapse list-unstyled" id="pageSubmenu1">
 							<?php
 								foreach($form_attr["data"] as $form){
-									echo '<li><a href="../view-data/view-data.php?folder='.$form['folder'].'">'.$form['folder'].'</a></li>';
+									if($form['folder']["type"] == "0")
+									echo '<li><a href="../view-data/view-data.php?folder='.$form['folder']["name"].'">'.$form['folder']["name"].'</a></li>';
 								}
 							?>
 						</ul>

@@ -76,6 +76,7 @@ else if (isset($_POST["folder"]))
     $folder_types = $_POST["folder_type"];
     $tables = $_POST["table"];
     $attributes = $_POST["attribute"];
+    $fields = $_POST["field"];
     if (isset($_POST["direct_to_db"])) $direct_to_dbs = $_POST["direct_to_db"];
     $app_key = $_POST["dropbox_app_key"];
     $app_secret = $_POST["dropbox_app_secret"];
@@ -110,9 +111,9 @@ else if (isset($_POST["folder"]))
         $prepend2 = $prepend2 . '$db="' . $db . '"; ';
         $prepend2 = $prepend2 . '$table_name="' . $tables[$i] . '"; ';
 
-        foreach ($attributes[$tables[$i]] as $j => $attribute)
+        foreach ($fields[$tables[$i]] as $j => $field)
         {
-            $prepend = $prepend . '$syncs[' . $i . ']["table_attr"][' . $j . ']="' . $attribute . '"; ';
+            $prepend = $prepend . '$syncs[' . $i . ']["table_attr"][' . $j . ']="' . $field . '"; ';
         }
         foreach ($attributes[$folders[$i]] as $j => $attribute)
         {
@@ -227,29 +228,30 @@ else
 						<a href="#pageSubmenu1" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Dropbox Data</a>
 						<ul class="collapse list-unstyled" id="pageSubmenu1">
 							<?php
-    foreach ($form_attr["data"] as $form)
-    {
-        echo '<li><a href="../view-data/view-data.php?folder=' . $form['folder'] . '">' . $form['folder'] . '</a></li>';
-    }
-?>
+                                foreach ($form_attr["data"] as $form)
+                                {
+                                    if($form['folder']["type"] == "0")
+                                    echo '<li><a href="../view-data/view-data.php?folder=' . $form['folder']["name"] . '">' . $form['folder']["name"]  . '</a></li>';
+                                }
+                            ?>
 						</ul>
 					</li>
 					<li>
 						<a href="#pageSubmenu2" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">MySQL Data</a>
 						<ul class="collapse list-unstyled" id="pageSubmenu2">
 							<?php
-    if (isset($sync_setting))
-    {
-        foreach ($sync_setting[0] as $table)
-        {
-            echo '<li><a href="../view-data/view-data.php?table=' . $table . '">' . $table . '</a></li>';
-        }
-    }
-    else
-    {
-        echo '<li style="font-size:12">Set your MySQL on Sync Setter Page!</li>';
-    }
-?>
+                                if (isset($sync_setting))
+                                {
+                                    foreach ($sync_setting[0] as $table)
+                                    {
+                                        echo '<li><a href="../view-data/view-data.php?table=' . $table . '">' . $table . '</a></li>';
+                                    }
+                                }
+                                else
+                                {
+                                    echo '<li style="font-size:12">Set your MySQL on Sync Setter Page!</li>';
+                                }
+                            ?>
 						</ul>
 					</li>
 				</ul>
@@ -535,7 +537,7 @@ else
                         $(this).parent().parent().parent().find(".sync-modal").attr("data-modal-folder",selected_folder);
                         $(this).parent().parent().parent().find(".sync-modal").attr("data-modal-table",selected_table);
                         $(this).parent().parent().parent().find(".sync-attr-from").attr("name",'attribute['+selected_folder+'][]' );
-                        $(this).parent().parent().parent().find(".sync-attr-to").attr("name", 'attribute['+selected_table+'][]' );
+                        $(this).parent().parent().parent().find(".sync-attr-to").attr("name", 'field['+selected_table+'][]' );
                         $(this).parent().parent().parent().find(".direct-to-database").attr("name", 'direct_to_db['+selected_folder+'][]' );
                     }
                     
