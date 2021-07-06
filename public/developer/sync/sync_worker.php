@@ -1,7 +1,6 @@
 
 
 
-
 <?php
 require_once "../dropbox/autoload.php";
 use Kunnu\Dropbox\DropboxFile;
@@ -15,6 +14,7 @@ while (true)
     sleep($sleep_time);
     try
     {
+        echo "Listening...\n";
         $app = new DropboxApp($app_key, $app_secret, $access_token);
         $dropbox = new Dropbox($app);
         $response = $dropbox->postToAPI("/sharing/list_mountable_folders");
@@ -72,7 +72,7 @@ while (true)
                         $jenis_sync = "update";
                     }
 
-                    echo $jenis_sync . "ing...\n";
+                    echo "Found new data!, synchronizing to MySQL...\n";
                     $file_content = json_decode($file_download->getContents() , true);
 
                     $query = "SHOW KEYS FROM " . $sync["table"] . " WHERE Key_name = 'PRIMARY'";
@@ -228,7 +228,7 @@ while (true)
                     // }
                     $move_path = "/" . $project_name . "/" . $sync["folder"] . "/synchronized";
                     $move = $dropbox->move($path . "/" . $first_folder_name, $move_path . "/" . $first_folder_name, true);
-                    echo $query_main . "\n";
+                    echo "Sync success, query : ".$query_main . "\n";
                 }
             }
         }

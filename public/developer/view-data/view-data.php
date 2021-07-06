@@ -24,9 +24,9 @@ function download_file($dropbox, $dropbox_path, $local_path){
 	}
 }
 
-function download_data($dropbox, $project_name, $form_name, $last_folder_id){
+function download_data($dropbox, $project_name, $form_name, $last_folder_id , $sync){
 	$local_path = "data/".$form_name."/";
-	$dropbox_path = "/".$project_name."/".$form_name."/unsynchronized/";
+	$dropbox_path = "/".$project_name."/".$form_name."/".$sync."/";
 	
 	$listData = $dropbox->listFolder($dropbox_path);
 	$folders = $listData->getItems();
@@ -49,6 +49,10 @@ function download_data($dropbox, $project_name, $form_name, $last_folder_id){
 			$from = $dropbox_path.$folder->getName()."/insert.json";
 			$to = $local_path.$folder_id."/insert.json";
 			download_file($dropbox, $from, $to);
+			$json = json_decode(file_get_contents($to),true);
+			if($sync == "synchronized") $json['sync_status'] = "synchronized";
+			else $json['sync_status'] = "unsynchronized";
+			file_put_contents($to, json_encode($json));
 			mkdir($local_path.$folder_id."/attachment");
 			$listAttachment = $dropbox->listFolder($dropbox_path.$folder->getName()."/attachment");
 			$files = $listAttachment->getItems();
@@ -76,7 +80,8 @@ function download_data($dropbox, $project_name, $form_name, $last_folder_id){
 			}
 		}
 	}
-	return $folder_id;
+	if(isset($folder_id))return $folder_id;
+	else return "0";
 }
 
 
@@ -123,17 +128,30 @@ if(isset($_POST["download"])){
 		mount_shared_folder($dropbox, $project_name, $this_form);
 		if (!file_exists("data")) mkdir("data");
         if (!file_exists("data/".$this_form)) mkdir("data/".$this_form);
-		if (!file_exists("last-folder-id")) mkdir("last-folder-id");
-		if (!file_exists("last-folder-id/".$this_form.".txt")) {
-			$last_folder_id = download_data($dropbox,$project_name, $this_form, null);
-			file_put_contents("last-folder-id/".$this_form.".txt", $last_folder_id);
+		if (!file_exists("last-unsync-folder-id")) mkdir("last-unsync-folder-id");
+		if (!file_exists("last-sync-folder-id")) mkdir("last-sync-folder-id");
+
+		if (!file_exists("last-unsync-folder-id/".$this_form.".txt")) {
+			$last_folder_id_1 = download_data($dropbox,$project_name, $this_form, null, "unsynchronized");
+			if($last_folder_id_1!="0") file_put_contents("last-unsync-folder-id/".$this_form.".txt", $last_folder_id_1);
 			echo("a");
 		}
 		else{
-			$last_folder_id = file_get_contents("last-folder-id/".$this_form.".txt");
-			$lastest_folder_id = download_data($dropbox,$project_name, $this_form, $last_folder_id);
-			file_put_contents("last-folder-id/".$this_form.".txt", $lastest_folder_id);
+			$last_folder_id_1 = file_get_contents("last-unsync-folder-id/".$this_form.".txt");
+			$lastest_folder_id_1 = download_data($dropbox,$project_name, $this_form, $last_folder_id_1, "unsynchronized");
+			if($lastest_folder_id_1!="0") file_put_contents("last-unsync-folder-id/".$this_form.".txt", $lastest_folder_id_1);
 			echo("b");
+		}
+		if (!file_exists("last-sync-folder-id/".$this_form.".txt")) {
+			$last_folder_id_2 = download_data($dropbox,$project_name, $this_form, null, "synchronized");
+			if($last_folder_id_2!="0") file_put_contents("last-sync-folder-id/".$this_form.".txt", $last_folder_id_2);
+			echo("c");
+		}
+		else{
+			$last_folder_id_2 = file_get_contents("last-sync-folder-id/".$this_form.".txt");
+			$lastest_folder_id_2 = download_data($dropbox,$project_name, $this_form, $last_folder_id_2, "synchronized");
+			if($lastest_folder_id_2!="0") file_put_contents("last-sync-folder-id/".$this_form.".txt", $lastest_folder_id_2);
+			echo("d");
 		}
 	}catch(Exception $e){   
 		echo("Connection failed: " . $e->getMessage()."\n");
@@ -311,6 +329,7 @@ else if(isset($_GET["folder"]) || isset($_GET["table"]) ){
         <div class="modal-content">
             <div class="modal-header">
                 <h4 id="subform-name" class="modal-title">Subform Data</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div id="subform-json" class="modal-body">
 				<div class="table-responsive">	
@@ -323,6 +342,9 @@ else if(isset($_GET["folder"]) || isset($_GET["table"]) ){
 					</table>
 				</div>
             </div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+			</div>   
         </div>
     </div>
 </div>
