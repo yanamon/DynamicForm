@@ -364,10 +364,10 @@ else if(isset($_GET["folder"]) || isset($_GET["table"]) ){
 		$.each(json, function(i, items) {
 			keys = Object.keys(items);
 			var no = i+1;
-			$('#tbody-subform').append('<tr id="tr-subform"></tr>')
-			$('#tr-subform').append('<td>'+no+'</td>')
+			$('#tbody-subform').append('<tr id="tr-subform-'+i+'"></tr>')
+			$('#tr-subform-'+i).append('<td>'+no+'</td>')
 			$.each(items, function(j, item) {
-				$('#tr-subform').append('<td>'+item+'</td>')
+				$('#tr-subform-'+i).append('<td>'+item+'</td>')
 			});
 		});
 
