@@ -210,8 +210,8 @@ $(document).ready(function() {
         deleteInput();
         keys[card_id] = input_key;
 
-        input_html=input_html + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
-        input_html2=input_html2 + '<input type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
+        input_html=input_html + '<input  class=\'subform-input form-control\' type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
+        input_html2=input_html2 + '<input  class=\'subform-input form-control\' type=hidden name=input_label['+card_id+'] value='+input_key+'>' + '</div>';
         
         var updated_html = '<div id=card-input-'+card_id+' data-required='+input_required+' data-key='+input_key+' data-id='+card_id+' class=card-input>'
         updated_html = updated_html + input_html;
